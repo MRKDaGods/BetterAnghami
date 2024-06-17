@@ -1,0 +1,82 @@
+﻿<Window x:Class="MRK.CreateThemeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Create New Theme" 
+        Height="380" Width="600"
+        WindowStartupLocation="CenterScreen"
+        Style="{DynamicResource CustomWindowStyle}"
+        Loaded="OnWindowLoaded">
+    <Grid Margin="8, 12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Title -->
+        <Label FontSize="24" FontWeight="Medium" Content="Create New Theme" />
+
+        <!-- Body -->
+        <Grid Grid.Row="1" Margin="5, 10, 0, 0">
+            <Grid.Resources>
+                <Style TargetType="{x:Type Label}" BasedOn="{StaticResource {x:Type Label}}">
+                    <Setter Property="Margin" Value="0, 5"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Right"/>
+                </Style>
+
+                <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource {x:Type TextBox}}">
+                    <Setter Property="Margin" Value="10, 5"/>
+                    <Setter Property="Padding" Value="4, 2"/>
+                    <Setter Property="Height" Value="30" />
+                    <Setter Property="VerticalContentAlignment" Value="Center" />
+                </Style>
+            </Grid.Resources>
+            
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Creator ID -->
+            <Label Grid.Row="0" Grid.Column="0" Content="Creator ID" />
+            <TextBox x:Name="creatorIdTextBox" Grid.Row="0" Grid.Column="1" d:Text="123456"/>
+
+            <!-- Creator name -->
+            <Label Grid.Row="1" Grid.Column="0" Content="Creator Name" />
+            <TextBox x:Name="creatorNameTextBox" Grid.Row="1" Grid.Column="1" d:Text="Mohamed Ammar" />
+
+            <!-- Theme name -->
+            <Label Grid.Row="2" Grid.Column="0" Content="Theme Name" />
+            <TextBox x:Name="themeNameTextBox" Grid.Row="2" Grid.Column="1" Text="New Anghami Theme" />
+            
+            <!-- Theme description -->
+            <Label Grid.Row="3" Grid.Column="0" Content="Theme Description" />
+            <TextBox x:Name="themeDescTextBox" Grid.Row="3" Grid.Column="1" d:Text="This is really dark! Careful" />
+
+            <!-- Theme version -->
+            <Label Grid.Row="4" Grid.Column="0" Content="Theme Version" />
+            <TextBox x:Name="themeVersionTextBox" Grid.Row="4" Grid.Column="1" Text="1.0" />
+            
+            <!-- Create Button -->
+            <Button Grid.Row="5"
+                    Grid.Column="2"
+                    Content="Create"
+                    Margin="10"
+                    Padding="40, 10"
+                    HorizontalAlignment="Right" 
+                    VerticalAlignment="Bottom"
+                    Click="OnCreateClick" />
+        </Grid>
+    </Grid>
+</Window>

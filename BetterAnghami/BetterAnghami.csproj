@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>False</UseWindowsForms>
+    <RootNamespace>MRK</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="CSS\BetterAnghami.css" />
+    <None Remove="HTML\ThemesButton.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="CSS\BetterAnghami.css" />
+    <EmbeddedResource Include="HTML\ThemesButton.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Gu.Wpf.Adorners" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2535.41" />
+    <PackageReference Include="PixiEditor.ColorPicker" Version="3.4.1" />
+  </ItemGroup>
+
+</Project>
