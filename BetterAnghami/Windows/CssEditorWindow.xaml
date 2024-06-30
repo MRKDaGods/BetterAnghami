@@ -1,0 +1,65 @@
+﻿<Window x:Name="window" x:Class="MRK.CssEditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MRK"
+        xmlns:conv="clr-namespace:MRK.Converters"
+        mc:Ignorable="d"
+        Title="CSS Editor"
+        Height="650" Width="1000"
+        Background="#1a1a1a"
+        WindowStartupLocation="CenterScreen"
+        Style="{DynamicResource CustomWindowStyle}"
+        DataContext="{RelativeSource Mode=Self}"
+        Loaded="OnWindowLoaded">
+    <Window.Resources>
+        <conv:BooleanInverseConverter x:Key="BooleanInverseConverter" />
+    </Window.Resources>
+    
+    <Grid Margin="8, 12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        
+        <Label FontSize="24" 
+               FontWeight="Medium"
+               d:Content="Deep Dark" Content="{Binding Theme.Name, ElementName=window}"/>
+
+        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+            <!-- tbd -->
+            <StackPanel.Resources>
+                <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                    <Setter Property="Padding" Value="30, 4" />
+                    <Setter Property="FontSize" Value="14" />
+                    <Setter Property="FontWeight" Value="Medium" />
+                    
+                </Style>
+            </StackPanel.Resources>
+            
+            <!-- Apply button -->
+            <Button Content="Reset" Click="OnResetClick" IsEnabled="{Binding Theme.IsBuiltIn, ElementName=window, Converter={StaticResource BooleanInverseConverter}}" />
+            <Button Content="Apply" Click="OnApplyClick" IsEnabled="{Binding Theme.IsBuiltIn, ElementName=window, Converter={StaticResource BooleanInverseConverter}}" />
+        </StackPanel>
+            
+        <TextBox x:Name="contentTextbox"
+                 Grid.Row="1"
+                 Grid.ColumnSpan="2"
+                 FontSize="14"
+                 FontFamily="Consolas"
+                 Margin="4, 16, 4, 8"
+                 Padding="16"
+                 VerticalScrollBarVisibility="Auto"
+                 AcceptsReturn="True"
+                 AcceptsTab="True"
+                 TextWrapping="Wrap"
+                 IsReadOnly="{Binding Theme.IsBuiltIn, ElementName=window}">
+        </TextBox>
+    </Grid>
+</Window>

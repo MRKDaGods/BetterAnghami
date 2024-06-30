@@ -48,9 +48,30 @@ namespace MRK
             return File.Exists($"{BaseFolderPath}/{relativePath}");
         }
 
+        /// <summary>
+        /// Determines whether the relative directory path exists or not
+        /// </summary>
+        public bool DirectoryExists(string relativePath)
+        {
+            return Directory.Exists($"{BaseFolderPath}/{relativePath}");
+        }
+
+        /// <summary>
+        /// Creates the specified relative directory
+        /// </summary>
+        public void DirectoryCreate(string relativePath)
+        {
+            Directory.CreateDirectory($"{BaseFolderPath}/{relativePath}");
+        }
+
         public void Rename(string relativePath, string newRelativeName)
         {
             File.Move($"{BaseFolderPath}/{relativePath}", $"{BaseFolderPath}/{newRelativeName}");
+        }
+
+        public void Delete(string relativePath)
+        {
+            File.Delete($"{BaseFolderPath}/{relativePath}");
         }
     }
 }

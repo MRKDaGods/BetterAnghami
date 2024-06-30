@@ -21,7 +21,7 @@ namespace MRK.Actions
         {
             if (!_hasInjectedMainUI)
             {
-                var themesButton = await Utils.ReadEmbeddedResource("MRK.HTML.ThemesButton.html");
+                var themesButton = await Utils.ReadEmbeddedResource("HTML.ThemesButton.html");
                 // inject themes button
                 _hasInjectedMainUI = await WebView.ExecuteScriptAsync($$"""
                 (function() {

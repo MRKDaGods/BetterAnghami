@@ -11,19 +11,29 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="CSS\BetterAnghami.css" />
-    <None Remove="HTML\ThemesButton.html" />
+    <None Remove="Resources\CSS\BetterAnghami.css" />
+    <None Remove="Resources\CSS\Themes\AnotherDark.css" />
+    <None Remove="Resources\CSS\Themes\DefaultDark.css" />
+    <None Remove="Resources\HTML\ThemesButton.html" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="CSS\BetterAnghami.css" />
-    <EmbeddedResource Include="HTML\ThemesButton.html" />
+    <EmbeddedResource Include="Resources\CSS\BetterAnghami.css" />
+    <EmbeddedResource Include="Resources\CSS\Themes\AnotherDark.css" />
+    <EmbeddedResource Include="Resources\CSS\Themes\DefaultDark.css" />
+    <EmbeddedResource Include="Resources\HTML\ThemesButton.html" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="FuzzySharp" Version="2.0.2" />
     <PackageReference Include="Gu.Wpf.Adorners" Version="2.1.1" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2535.41" />
+    <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
     <PackageReference Include="PixiEditor.ColorPicker" Version="3.4.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CssToThemePropertiesConverter\CssToThemePropertiesConverter.csproj" />
   </ItemGroup>
 
 </Project>

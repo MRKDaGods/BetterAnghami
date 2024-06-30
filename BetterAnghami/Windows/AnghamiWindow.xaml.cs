@@ -2,6 +2,9 @@
 using MRK.Actions;
 using MRK.Models;
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
@@ -26,15 +29,33 @@ namespace MRK
             Instance = this;
 
             InitializeComponent();
+        }
+
+        private async void OnWindowLoaded(object sender, RoutedEventArgs e)
+        {
+            // initialize themes
+            await ThemeManager.Instance.LoadInstalledThemes();
 
             // initialize webview
-            InitializeWebView();
+            await InitializeWebView();
+        }
+
+        private void OnWindowClosing(object sender, CancelEventArgs e)
+        {
+            // close all other windows
+            foreach (Window window in Application.Current.Windows)
+            {
+                if (window != this)
+                {
+                    window.Close();
+                }
+            }
         }
 
         /// <summary>
         /// Initializes CoreWebView2 and loads up Anghami Home
         /// </summary>
-        private async void InitializeWebView()
+        private async Task InitializeWebView()
         {
             // initialize webview
             await webViewControl.EnsureCoreWebView2Async();
@@ -132,7 +153,7 @@ namespace MRK
         {
             ActionManager.RegisterAction(WebViewEvent.SourceChanged, new CheckLoginAction(WebView));
             ActionManager.RegisterAction(WebViewEvent.SourceChanged, new RemoveDesktopLinkAction(WebView));
-            ActionManager.RegisterAction(WebViewEvent.SourceChanged, new SetCustomThemeAction(WebView));
+            ActionManager.RegisterAction(WebViewEvent.SourceChanged, new SetSelectedThemeAction(WebView));
             ActionManager.RegisterAction(WebViewEvent.SourceChanged, new InjectBetterUI(WebView));
         }
 
@@ -142,7 +163,7 @@ namespace MRK
         private void RegisterDOMContentLoadedActions()
         {
             ActionManager.RegisterAction(WebViewEvent.DOMLoaded, new InjectCustomCSSAction(WebView));
-            ActionManager.RegisterAction(WebViewEvent.DOMLoaded, new SetCustomLoadingScreenAction(WebView));
+            ActionManager.RegisterAction(WebViewEvent.DOMLoaded, new SetLoadingScreenAction(WebView));
         }
 
         /// <summary>
@@ -169,6 +190,19 @@ namespace MRK
             }
 
             return JsonSerializer.Deserialize<User>(json)!;
+        }
+
+        /// <summary>
+        /// Immediately applies the provided theme properties to the document body
+        /// </summary>
+        public async Task ApplyThemeImmediate(List<ThemeProperty> props)
+        {
+            var inlineCss = string.Join('\n', 
+                props.Select(x => $"{x.Name}: {x.Value};"));
+
+            await ActionManager.ExecuteActionRaw($"""
+                document.body.style.cssText = `{inlineCss}`;
+                """);
         }
     }
 }

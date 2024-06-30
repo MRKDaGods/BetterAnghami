@@ -4,7 +4,7 @@ using System.Windows;
 
 namespace MRK.Actions
 {
-    public class SetCustomLoadingScreenAction(CoreWebView2 webView) : AsyncConsumableAction(webView)
+    public class SetLoadingScreenAction(CoreWebView2 webView) : AsyncConsumableAction(webView)
     {
         public override bool WaitForLoad => false;
 

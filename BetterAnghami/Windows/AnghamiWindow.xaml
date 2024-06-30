@@ -7,7 +7,9 @@
         mc:Ignorable="d"
         Title="Better Anghami" Height="800" Width="1200"
         WindowStartupLocation="CenterScreen"
-        Style="{DynamicResource CustomWindowStyle}">
+        Style="{DynamicResource CustomWindowStyle}"
+        Loaded="OnWindowLoaded"
+        Closing="OnWindowClosing">
     <!-- for now we will just have the browser -->
     <Grid>
         <Grid.RowDefinitions>

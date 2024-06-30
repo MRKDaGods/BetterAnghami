@@ -1,15 +1,34 @@
 ﻿<Window x:Class="MRK.ThemesWindow"
+        x:Name="window"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MRK"
+        xmlns:conv="clr-namespace:MRK.Converters"
+        xmlns:cp="clr-namespace:ColorPicker;assembly=ColorPicker"
         mc:Ignorable="d"
-        Title="Themes" Height="650" Width="1000"
+        Title="Better Anghami - Themes" Height="900" Width="1350"
         WindowStartupLocation="CenterScreen"
         Style="{DynamicResource CustomWindowStyle}"
         DataContext="{RelativeSource Mode=Self}"
-        Background="#FF0A0C0D"
-        Loaded="OnWindowLoaded">
+        Loaded="OnWindowLoaded"
+        Closed="OnWindowClosed">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary
+                    Source="pack://application:,,,/ColorPicker;component/Styles/DefaultColorPickerStyle.xaml" />
+                
+                <ResourceDictionary>
+                    <conv:StringToColorConverter x:Key="StringToColorConverter" />
+                    <conv:ColorToInvertedColorConverter x:Key="ColorToInvertedColorConverter" />
+                    <conv:ColorToReadableColorConverter x:Key="ColorToReadableColorConverter" />
+                </ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
     <Grid Margin="8, 12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -49,7 +68,6 @@
             <Button Grid.Column="1"
                     Padding="16, 0"
                     Height="30"
-                    FontWeight="Medium"
                     Content="Create"
                     Click="OnCreateThemeClick"/>
         </Grid>
@@ -66,75 +84,150 @@
                FontWeight="Medium"
                Content="No themes available :(" />
 
-        <!-- Theme container -->
-        <ScrollViewer Grid.Row="1" Grid.Column="0" Margin="4, 16" VerticalScrollBarVisibility="Auto">
-            <ItemsControl x:Name="themesControl" d:ItemsSource="{d:SampleData ItemCount=3}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel Width="360" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
+        <!-- Left sidebar -->
+        <Grid Grid.Row="1" Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            
+            <!-- Theme container -->
+            <ScrollViewer Margin="4, 16" VerticalScrollBarVisibility="Auto">
+                <ItemsControl x:Name="themesControl" d:ItemsSource="{d:SampleData ItemCount=3}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Width="360" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
 
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border Tag="{Binding .}" Height="120" Background="#212121" Padding="1">
-                            <Border >
-                                <Border.Resources>
-                                    <Style TargetType="Border">
-                                        <Setter Property="Background" Value="#151515" />
-                                        <Setter Property="Padding" Value="8" />
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Tag="{Binding .}" Height="120" Padding="1" MouseUp="OnThemeClick">
+                                <Border>
+                                    <Border.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="{x:Static local:ThemesWindow.NormalContainerBrush}" />
+                                            <Setter Property="Padding" Value="8" />
 
-                                        <Style.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="true">
-                                                <Trigger.EnterActions>
-                                                    <BeginStoryboard>
-                                                        <Storyboard>
-                                                            <ColorAnimation 
-                                                                To="#212121" 
-                                                                Storyboard.TargetProperty="(Control.Background).(SolidColorBrush.Color)" 
-                                                                FillBehavior="HoldEnd" 
-                                                                Duration="0:0:0.25" 
-                                                                AutoReverse="False" 
-                                                                RepeatBehavior="1x"/>
-                                                        </Storyboard>
-                                                    </BeginStoryboard>
-                                                </Trigger.EnterActions>
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="true">
+                                                    <Trigger.EnterActions>
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <ColorAnimation 
+                                                         To="{x:Static local:ThemesWindow.ActiveContainerColor}" 
+                                                         Storyboard.TargetProperty="(Control.Background).(SolidColorBrush.Color)" 
+                                                         FillBehavior="HoldEnd" 
+                                                         Duration="0:0:0.25" 
+                                                         AutoReverse="False" 
+                                                         RepeatBehavior="1x"/>
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </Trigger.EnterActions>
 
-                                                <Trigger.ExitActions>
-                                                    <BeginStoryboard>
-                                                        <Storyboard>
-                                                            <ColorAnimation
-                                                                Storyboard.TargetProperty="(Control.Background).(SolidColorBrush.Color)" 
-                                                                FillBehavior="HoldEnd" 
-                                                                Duration="0:0:0.25" 
-                                                                AutoReverse="False" 
-                                                                RepeatBehavior="1x"/>
-                                                        </Storyboard>
-                                                    </BeginStoryboard>
-                                                </Trigger.ExitActions>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Border.Resources>
+                                                    <Trigger.ExitActions>
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <ColorAnimation
+                                                         Storyboard.TargetProperty="(Control.Background).(SolidColorBrush.Color)" 
+                                                         FillBehavior="HoldEnd" 
+                                                         Duration="0:0:0.25" 
+                                                         AutoReverse="False" 
+                                                         RepeatBehavior="1x"/>
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </Trigger.ExitActions>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Resources>
 
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="*" />
-                                    </Grid.RowDefinitions>
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="*" />
+                                        </Grid.RowDefinitions>
 
-                                    <Label Grid.Row="0" FontWeight="Medium" FontSize="18" Content="{Binding Name}" />
-                                    <TextBlock Grid.Row="1" Margin="5, 0, 0, 0" FontSize="16" Foreground="#FFA1A5AC" Text="{Binding Owner}" />
+                                        <!-- Name bar -->
+                                        <Grid Grid.Row="0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
 
-                                    <TextBlock Grid.Row="2" Margin="5, 12" FontSize="14" Foreground="#FFA1A5AC" Text="{Binding Description}" />
-                                </Grid>
+                                            <Label Grid.Column="0" FontWeight="Medium" FontSize="18" Content="{Binding Name}" />
+                                            <TextBlock Grid.Column="1" FontWeight="Bold" FontSize="12" Foreground="#FFA1A5AC" VerticalAlignment="Center" Text="Built In">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="{x:Type TextBlock}">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsBuiltIn}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Grid>
+
+                                        <!-- Creator Name -->
+                                        <TextBlock Grid.Row="1" Margin="5, 0, 0, 0" FontSize="16" Foreground="#FFA1A5AC" Text="{Binding CreatorName}" />
+
+                                        <!-- Description -->
+                                        <TextBlock Grid.Row="2" Margin="5, 12" FontSize="14" Foreground="#FFA1A5AC" Text="{Binding Description}" />
+                                    </Grid>
+                                </Border>
                             </Border>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- color picker -->
+            <cp:StandardColorPicker x:Name="colorPicker"
+                                    Grid.Row="1"
+                                    Margin="5, 0"
+                                    ColorChanged="OnColorPickerColorChanged"
+                                    Visibility="Collapsed"
+                                    d:Visibility="Visible">
+                <cp:StandardColorPicker.Style>
+                    <Style TargetType="cp:StandardColorPicker" BasedOn="{StaticResource DefaultColorPickerStyle}">
+                        <Style.Resources>
+                            <!-- Main grid-->
+                            <Style TargetType="Grid">
+                                <Style.Triggers>
+                                    <Trigger Property="Name" Value="MainGrid">
+                                        <Setter Property="Background" Value="#1a1a1a" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+
+                            <!-- Hex textbox -->
+                            <Style TargetType="cp:HexColorTextBox">
+                                <Setter Property="Margin" Value="0, 0, 0, 40" />
+                            </Style>
+
+                            <!-- Hex label -->
+                            <Style TargetType="Label">
+                                <Setter Property="Margin" Value="0, 0, 0, 40" />
+                            </Style>
+
+                            <!-- Hide HSL/HSV combobox, we default to HSV anyway -->
+                            <Style TargetType="ComboBox">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </Style>
+
+                            <!-- Set to RGB tab by default -->
+                            <Style TargetType="{x:Type TabControl}" BasedOn="{StaticResource {x:Type TabControl}}">
+                                <Setter Property="SelectedIndex" Value="2" />
+                            </Style>
+                        </Style.Resources>
+                    </Style>
+                </cp:StandardColorPicker.Style>
+            </cp:StandardColorPicker>
+        </Grid>
 
         <!-- Theme editor toolbar -->
         <Grid Grid.Row="0" Grid.Column="1" Height="30" Margin="10, 0, 0, 0">
@@ -150,7 +243,8 @@
                              VerticalContentAlignment="Center"
                              Padding="7, 5"
                              Height="28"
-                             Text="" />
+                             Text=""
+                             TextChanged="OnSearchBoxTextChanged"/>
 
                 <!-- Watermark -->
                 <TextBlock IsHitTestVisible="False"
@@ -176,8 +270,16 @@
 
             <!-- Toolbar items -->
             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                <Button Padding="12, 0" FontWeight="Medium" Content="Edit Theme CSS" />
-                <Button Padding="12, 0" FontWeight="Bold" Content="Delete Theme" />
+                <StackPanel.Resources>
+                    <Style TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
+                        <Setter Property="Padding" Value="12, 0" />
+                    </Style>
+                </StackPanel.Resources>
+                
+                <Button x:Name="applyThemeButton" Content="Apply Theme" Click="OnApplyThemeClick" />
+                <Button x:Name="saveChangesButton" Content="Save Changes" Click="OnSaveChangesClick" />
+                <Button x:Name="editCssButton" Content="Edit CSS" Click="OnEditThemeCssClick" />
+                <Button x:Name="deleteThemeButton" Content="Delete Theme" Click="OnDeleteThemeClick" />
             </StackPanel>
         </Grid>
 
@@ -190,8 +292,30 @@
                    HorizontalAlignment="Left" />
 
         <!-- Theme editor -->
-        <ScrollViewer Grid.Row="1" Grid.Column="1" Margin="12, 16, 0, 16" VerticalScrollBarVisibility="Auto">
-            <ItemsControl AlternationCount="2" d:ItemsSource="{d:SampleData ItemCount=33}">
+        <!-- Loading placeholder -->
+        <Label x:Name="themePropertiesLoadingLabel"
+               Grid.Row="1"
+               Grid.Column="1"
+               Grid.ZIndex="98"
+               VerticalAlignment="Stretch"
+               HorizontalAlignment="Stretch"
+               HorizontalContentAlignment="Center"
+               VerticalContentAlignment="Center"
+               Background="#0a0c0d"
+               FontSize="24"
+               Visibility="Collapsed"
+               FontWeight="Medium"
+               Content="Loading Theme Properties" />
+        
+        <!-- Main Container -->
+        <ScrollViewer x:Name="editorScrollView"
+                      Grid.Row="1"
+                      Grid.Column="1"
+                      Margin="12, 16, 0, 0"
+                      VerticalScrollBarVisibility="Auto">
+            <ItemsControl x:Name="themePropertiesControl"
+                          AlternationCount="2"
+                          d:ItemsSource="{d:SampleData ItemCount=33}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <StackPanel />
@@ -200,20 +324,71 @@
 
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border x:Name="propContainer" Height="35" Background="#1a1a1a" Padding="8, 0, 0, 0">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Hidden">
+                            <Border x:Name="propContainer" Tag="{Binding .}" Height="35" Background="#1a1a1a" Padding="8, 0, 0, 0">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
 
-                                <!-- Property Name -->
-                                <Label Grid.Column="0" FontWeight="Medium" FontSize="12" VerticalAlignment="Center" Content="app-background" />
+                                    <!-- Property Name -->
+                                    <Label Grid.Column="0" FontWeight="Medium" FontSize="12" VerticalAlignment="Center" Content="{Binding Name}" />
 
-                                <!-- Color -->
-                                <Rectangle Grid.Column="1" Width="150" Fill="#00f" />
-                            </Grid>
-                        </Border>
+                                    <!-- Property Value -->
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <!-- Detected colors -->
+                                        <ItemsControl d:ItemsSource="{d:SampleData ItemCount=2}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Horizontal" />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Margin="4" 
+                                                            Width="75"
+                                                            Tag="{Binding .}"
+                                                            MouseUp="OnThemeColorClick">
+                                                        <Border.Background>
+                                                            <SolidColorBrush Color="{Binding Color}" />
+                                                        </Border.Background>
+                                                        
+                                                        <!-- Color text -->
+                                                        <TextBlock FontSize="10"
+                                                                   HorizontalAlignment="Center"
+                                                                   VerticalAlignment="Center"
+                                                                   FontWeight="Medium"
+                                                                   Margin="4"
+                                                                   Text="{Binding Value}">
+                                                            <TextBlock.Foreground>
+                                                                <SolidColorBrush Color="{Binding Color, Converter={StaticResource ColorToReadableColorConverter}}"
+                                                                                 d:Color="White"/>
+                                                            </TextBlock.Foreground>
+                                                        </TextBlock>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+
+                                        <!-- Property value textbox -->
+                                        <TextBox Width="300"
+                                             Tag="{Binding .}"
+                                             d:Text="var(--mrkxxxxx)"
+                                             Text="{Binding Value}"
+                                             VerticalContentAlignment="Center"
+                                             TextChanged="OnValueTextboxChanged"
+                                             Loaded="OnValueTextboxLoaded"
+                                             LostFocus="OnValueTextboxFocusLost"
+                                             SelectionChanged="OnValueTextboxSelectionChanged"
+                                             Margin="0, 1"
+                                             Padding="4"
+                                             IsReadOnly="{Binding SelectedTheme.IsBuiltIn, ElementName=window}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </ScrollViewer>
 
                         <DataTemplate.Triggers>
                             <Trigger Property="ItemsControl.AlternationIndex" Value="0">

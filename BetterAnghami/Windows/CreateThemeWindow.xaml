@@ -33,7 +33,7 @@
                     <Setter Property="VerticalContentAlignment" Value="Center" />
                 </Style>
             </Grid.Resources>
-            
+
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -59,24 +59,43 @@
             <!-- Theme name -->
             <Label Grid.Row="2" Grid.Column="0" Content="Theme Name" />
             <TextBox x:Name="themeNameTextBox" Grid.Row="2" Grid.Column="1" Text="New Anghami Theme" />
-            
+
             <!-- Theme description -->
             <Label Grid.Row="3" Grid.Column="0" Content="Theme Description" />
-            <TextBox x:Name="themeDescTextBox" Grid.Row="3" Grid.Column="1" d:Text="This is really dark! Careful" />
+            <TextBox x:Name="themeDescTextBox" Grid.Row="3" Grid.Column="1" MaxLength="256" d:Text="This is really dark! Careful" />
 
             <!-- Theme version -->
             <Label Grid.Row="4" Grid.Column="0" Content="Theme Version" />
             <TextBox x:Name="themeVersionTextBox" Grid.Row="4" Grid.Column="1" Text="1.0" />
-            
-            <!-- Create Button -->
-            <Button Grid.Row="5"
-                    Grid.Column="2"
-                    Content="Create"
-                    Margin="10"
-                    Padding="40, 10"
-                    HorizontalAlignment="Right" 
-                    VerticalAlignment="Bottom"
-                    Click="OnCreateClick" />
+
+            <!-- Footer elements -->
+            <Grid Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Margin="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Create Button -->
+                <Button x:Name="createButton"
+                        Grid.Column="1"
+                        Content="Create"
+                        Padding="40, 10"
+                        FontWeight="Medium"
+                        HorizontalAlignment="Right" 
+                        VerticalAlignment="Bottom"
+                        Click="OnCreateClick" />
+                
+                <!-- Error text -->
+                <TextBlock x:Name="errorText"
+                           Margin="10, 10"
+                           VerticalAlignment="Bottom"
+                           Foreground="#FFFF3333"
+                           FontWeight="Medium"
+                           FontSize="14"
+                           Visibility="Collapsed"
+                           d:Visibility="Visible"
+                           d:Text="This is an error fr"  />
+            </Grid>
         </Grid>
     </Grid>
 </Window>
