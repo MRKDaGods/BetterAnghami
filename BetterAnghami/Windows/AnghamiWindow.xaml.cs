@@ -17,16 +17,41 @@ namespace MRK
     public partial class AnghamiWindow : Window
     {
         public CoreWebView2 WebView => webViewControl.CoreWebView2;
-        private static ActionManager ActionManager => ActionManager.Instance;
 
-#pragma warning disable CS8618 // Instance is never null
+        private readonly ObjectReference<bool> _running;
+
+        /// <summary>
+        /// Is our app running?
+        /// </summary>
+        public bool IsRunning
+        {
+            get
+            {
+                return _running.Value;
+            }
+
+            set
+            {
+                lock (_running)
+                {
+                    _running.Value = value;
+                }
+            }
+        }
+
+#nullable disable
         public static AnghamiWindow Instance { get; private set; }
-#pragma warning restore CS8618
+#nullable enable
+
+        private static ActionManager ActionManager => ActionManager.Instance;
 
         public AnghamiWindow()
         {
             // assign instance
             Instance = this;
+
+            // create running ref
+            _running = new(true);
 
             InitializeComponent();
         }
@@ -50,6 +75,12 @@ namespace MRK
                     window.Close();
                 }
             }
+
+            // clean up rpc if enabled
+            AnghamiRPC.Instance.Stop();
+
+            // set running false, for other threads to exit
+            IsRunning = false;
         }
 
         /// <summary>
@@ -155,6 +186,7 @@ namespace MRK
             ActionManager.RegisterAction(WebViewEvent.SourceChanged, new RemoveDesktopLinkAction(WebView));
             ActionManager.RegisterAction(WebViewEvent.SourceChanged, new SetSelectedThemeAction(WebView));
             ActionManager.RegisterAction(WebViewEvent.SourceChanged, new InjectBetterUI(WebView));
+            ActionManager.RegisterAction(WebViewEvent.SourceChanged, new InitializeDiscordRPC(WebView));
         }
 
         /// <summary>
@@ -197,12 +229,62 @@ namespace MRK
         /// </summary>
         public async Task ApplyThemeImmediate(List<ThemeProperty> props)
         {
-            var inlineCss = string.Join('\n', 
+            var inlineCss = string.Join('\n',
                 props.Select(x => $"{x.Name}: {x.Value};"));
 
             await ActionManager.ExecuteActionRaw($"""
                 document.body.style.cssText = `{inlineCss}`;
                 """);
+        }
+
+        /// <summary>
+        /// Gets the currently playing song regardless of playing state
+        /// </summary>
+        public async Task<Song?> GetCurrentlyPlayingSong()
+        {
+            if (!IsRunning)
+            {
+                return null;
+            }
+
+            var json = await ActionManager.ExecuteActionRaw("""
+                (function() {
+                    // too lazy to use getxxx
+                    var infoContainer = document.querySelector(".image-info-container");
+
+                    // get image url
+                    var bgImage = infoContainer.querySelector(".track-coverart").style.backgroundImage;
+                    var imgUrlStart = bgImage.indexOf('"') + 1;
+                    var imgUrlEnd = bgImage.lastIndexOf('"');
+                    var imgUrl = bgImage.substring(imgUrlStart, imgUrlEnd);
+                    
+                    // get song name and id
+                    var titleAnchor = infoContainer.querySelector(".action-title");
+                    var songName = titleAnchor.innerText;
+                    var id = parseInt(titleAnchor.href.substring(titleAnchor.href.lastIndexOf('/') + 1));
+
+                    // get artist
+                    var artistAnchor = infoContainer.querySelector(".action-artist");
+                    var artistName = artistAnchor.innerText;
+
+                    return { Id: id, Name: songName, Artist: artistName, ImgUrl: imgUrl };
+                })()
+                """);
+
+            // dont attempt to convert if un-necessary
+            if (json == "null")
+            {
+                return null;
+            }
+
+            try
+            {
+                return JsonSerializer.Deserialize<Song>(json);
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

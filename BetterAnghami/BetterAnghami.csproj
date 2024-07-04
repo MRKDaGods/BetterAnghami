@@ -8,6 +8,7 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>False</UseWindowsForms>
     <RootNamespace>MRK</RootNamespace>
+    <ApplicationIcon>anghIcon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,6 +16,10 @@
     <None Remove="Resources\CSS\Themes\AnotherDark.css" />
     <None Remove="Resources\CSS\Themes\DefaultDark.css" />
     <None Remove="Resources\HTML\ThemesButton.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="anghIcon.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,6 +39,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CssToThemePropertiesConverter\CssToThemePropertiesConverter.csproj" />
+    <ProjectReference Include="..\DiscordRPCIntegration\DiscordRPCIntegration.csproj" />
   </ItemGroup>
 
 </Project>
