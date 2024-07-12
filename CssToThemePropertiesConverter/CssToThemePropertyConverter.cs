@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using MRK.Models;
+using System.Text.RegularExpressions;
 
 namespace MRK
 {
@@ -7,11 +8,11 @@ namespace MRK
         /// <summary>
         /// Converts a set of CSS variables to theme properties
         /// </summary>
-        public static List<(string, string)> Convert(string css, out List<string> unparsedLines)
+        public static List<ThemeProperty> Convert(string css, out List<string> unparsedLines)
         {
             unparsedLines = [];
 
-            List<(string, string)> result = [];
+            List<ThemeProperty> result = [];
 
             // remove comments
             // https://stackoverflow.com/a/10555656/24518001
@@ -62,7 +63,7 @@ namespace MRK
                 var name = line.Substring(0, seperatorIdx).Trim();
                 var value = line.Substring(seperatorIdx + 1, terminatorIdx - seperatorIdx - 1).Trim();
 
-                result.Add((name, value));
+                result.Add(new ThemeProperty(name, value));
             }
 
             return result;

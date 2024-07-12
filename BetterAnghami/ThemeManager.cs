@@ -198,10 +198,7 @@ namespace MRK
             var css = await Utils.ReadEmbeddedResource($"CSS.Themes.{themeName}.css");
 
             // convert to props
-            return CssToThemePropertyConverter
-                .Convert(css, out _)
-                .Select(x => new ThemeProperty(x.Item1, x.Item2))
-                .ToList();
+            return CssToThemePropertyConverter.Convert(css, out _);
         }
 
         /// <summary>

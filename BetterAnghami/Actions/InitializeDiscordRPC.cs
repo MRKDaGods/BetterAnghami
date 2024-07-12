@@ -1,5 +1,6 @@
 ﻿using Microsoft.Web.WebView2.Core;
 using MRK.Models;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,7 +14,12 @@ namespace MRK.Actions
         /// <summary>
         /// RPC thread sleep interval
         /// </summary>
-        private const int RpcThreadInterval = 200;
+        private const int RpcThreadInterval = 1000;
+
+        /// <summary>
+        /// Maximum time allowed for unsynchronization of RPC and realtime anghami song remaining time
+        /// </summary>
+        private const int MaxAllowedUnsynchronizedTime = 5;
 
         /// <summary>
         /// Has the RPC client been initialized?
@@ -60,27 +66,32 @@ namespace MRK.Actions
 
             // keep track of last set song
             Song? lastSetSong = null;
+            string? lastSetPlayState = null;    // play state of last sent RPC
+            int lastRemainingTime = 0;          // remaining time of last sent RPC
 
             while (RPC.IsInitialized && anghWindow.IsRunning)
             {
-                // TODO: check play state, and update RPC timestamps accordingly
-
                 // check song
                 Song? song = anghWindow.Dispatcher.Invoke(() => anghWindow.GetCurrentlyPlayingSong()).GetAwaiter().GetResult();
-                if (song != lastSetSong)
+                if (song != lastSetSong || (song != null && (lastSetPlayState != song.PlayState
+                                                             || Math.Abs(song.RemainingTime - lastRemainingTime) > MaxAllowedUnsynchronizedTime)))
                 {
                     if (song != null)
                     {
+                        // update local states
+                        lastSetPlayState = song.PlayState;
+                        lastRemainingTime = song.RemainingTime;
+
                         // update rpc
-                        RPC.SetSong(
-                            song.Id,
-                            song.Name,
-                            song.Artist,
-                            song.ImgUrl.Replace("&size=60", "&size=512"));
+                        RPC.SetSong(song);
                     }
                     else
                     {
+                        // clear everything
                         RPC.Clear();
+
+                        lastSetPlayState = null;
+                        lastRemainingTime = 0;
                     }
 
                     lastSetSong = song;

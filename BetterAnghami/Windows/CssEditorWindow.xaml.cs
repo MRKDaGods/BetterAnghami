@@ -76,9 +76,7 @@ namespace MRK
         private void OnApplyClick(object sender, RoutedEventArgs e)
         {
             // set new props
-            NewProperties = CssToThemePropertyConverter.Convert(contentTextbox.Text, out var unparsed)
-                .Select(x => new ThemeProperty(x.Item1, x.Item2))
-                .ToList();
+            NewProperties = CssToThemePropertyConverter.Convert(contentTextbox.Text, out var unparsed);
 
             using var dialog = new TaskDialog
             {

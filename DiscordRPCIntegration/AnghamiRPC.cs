@@ -1,8 +1,10 @@
 ﻿using DiscordRPC;
+using MRK.Models;
+using System.Text.RegularExpressions;
 
 namespace MRK
 {
-    public class AnghamiRPC
+    public partial class AnghamiRPC
     {
         private const string AppId = "1180106494042185778";
 
@@ -40,21 +42,36 @@ namespace MRK
         /// <summary>
         /// Sets a new presence with the provided song details
         /// </summary>
-        public void SetSong(int id, string name, string artist, string imgUrl)
+        /// <param name="remainingTime">Remaining time in seconds</param>
+        public void SetSong(Song song, int imageSize = 512)
         {
             if (!IsInitialized)
             {
                 return;
             }
 
+            // if remainingTime is available, make use of it
+            Timestamps? ts = null;
+            if (song.RemainingTime > 0 && song.IsPlaying)
+            {
+                ts = Timestamps.FromTimeSpan(song.RemainingTime);
+            }
+
+            var stateText = $"by {song.Artist}";
+            if (!song.IsPlaying)
+            {
+                stateText = $"{song.SongPlayStatus.ToString().ToUpper()} - {stateText}";
+            }
+
+            // build presence
             var presence = new RichPresence()
-                .WithTimestamps(Timestamps.Now)
-                .WithDetails(name)
-                .WithState($"by {artist}")
+                .WithTimestamps(ts)
+                .WithDetails(FixStringForRPC(song.Name))
+                .WithState(FixStringForRPC(stateText))
                 .WithAssets(new Assets
                 {
-                    LargeImageKey = imgUrl,
-                    LargeImageText = name,
+                    LargeImageKey = ImageSizeRegex().Replace(song.ImgUrl, $"&size={imageSize}"),
+                    LargeImageText = FixStringForRPC(song.Name),
                 });
 
             presence.Buttons =
@@ -62,10 +79,11 @@ namespace MRK
                 new Button
                 {
                     Label = "Play on ANGHAMI",
-                    Url = $"https://play.anghami.com/song/{id}"
+                    Url = $"https://play.anghami.com/song/{song.Id}"
                 }
             ];
 
+            // send to discord
             _client.SetPresence(presence);
         }
 
@@ -90,5 +108,26 @@ namespace MRK
                 _client.Deinitialize();
             }
         }
+        
+        /// <summary>
+        /// Ensures that a string satisfies the Discord RPC spec
+        /// </summary>
+        private static string FixStringForRPC(string str)
+        {
+            // trim
+            str = str.Trim();
+
+            // 128 byte check
+            if (str.Length > 128)
+            {
+                // very long str...
+                str = string.Concat(str.AsSpan(0, 125), "...");
+            }
+
+            return str;
+        }
+
+        [GeneratedRegex(@"&size=\d+")]
+        private static partial Regex ImageSizeRegex();
     }
 }

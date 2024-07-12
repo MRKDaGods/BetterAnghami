@@ -16,9 +16,14 @@ namespace MRK
     /// </summary>
     public partial class AnghamiWindow : Window
     {
-        public CoreWebView2 WebView => webViewControl.CoreWebView2;
-
         private readonly ObjectReference<bool> _running;
+
+        /// <summary>
+        /// Serializer options for Song JSON
+        /// </summary>
+        private readonly JsonSerializerOptions _songJsonSerializerOptions;
+
+        public CoreWebView2 WebView => webViewControl.CoreWebView2;
 
         /// <summary>
         /// Is our app running?
@@ -52,6 +57,12 @@ namespace MRK
 
             // create running ref
             _running = new(true);
+
+            // json options
+            _songJsonSerializerOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
 
             InitializeComponent();
         }
@@ -171,7 +182,9 @@ namespace MRK
         /// </summary>
         private async Task WaitForAnghamiLoad()
         {
-            while (await WebView.ExecuteScriptAsync(Scripts.CheckForAnghamiBase()) == "-1")
+            const string findAnghamiBase = """document.body.innerHTML.indexOf("anghami-base")""";
+
+            while (await ActionManager.ExecuteActionRaw(findAnghamiBase) == "-1")
             {
                 await Task.Delay(500);
             }
@@ -260,14 +273,35 @@ namespace MRK
                     
                     // get song name and id
                     var titleAnchor = infoContainer.querySelector(".action-title");
-                    var songName = titleAnchor.innerText;
+                    var name = titleAnchor.innerText;
                     var id = parseInt(titleAnchor.href.substring(titleAnchor.href.lastIndexOf('/') + 1));
 
                     // get artist
                     var artistAnchor = infoContainer.querySelector(".action-artist");
-                    var artistName = artistAnchor.innerText;
+                    var artist = artistAnchor.innerText;
 
-                    return { Id: id, Name: songName, Artist: artistName, ImgUrl: imgUrl };
+                    // play details
+                    var mainPlayer = document.querySelector(".main-player");
+                    var playPauseCont = mainPlayer.querySelector(".play-pause-cont");
+                    var playState = playPauseCont.children[0].classList[1]; // button name is the second class as of 12/7/2024
+
+                    // durations
+                    var durations = mainPlayer.querySelectorAll(".duration-text");
+                    var durStart = "--", remainingTime = "--";
+                    if (durations.length == 2) {
+                        durStart = durations[0].innerText;
+                        durEnd = durations[1].innerText; // remaining time
+                    }
+
+                    return {
+                        id,
+                        name,
+                        artist,
+                        imgUrl,
+                        playState,
+                        durStart,
+                        durEnd
+                    };
                 })()
                 """);
 
@@ -279,7 +313,7 @@ namespace MRK
 
             try
             {
-                return JsonSerializer.Deserialize<Song>(json);
+                return JsonSerializer.Deserialize<Song>(json, _songJsonSerializerOptions);
             }
             catch
             {

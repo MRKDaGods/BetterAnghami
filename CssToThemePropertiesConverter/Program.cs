@@ -9,7 +9,7 @@ Console.WriteLine("Properties: ");
 
 foreach (var prop in props)
 {
-    Console.WriteLine($"Property({prop.Item1}): {prop.Item2}");
+    Console.WriteLine($"Property({prop.Name}): {prop.Value}");
 }
 
 Console.WriteLine("Unparsed lines: ");

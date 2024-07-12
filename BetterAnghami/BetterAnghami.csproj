@@ -8,7 +8,8 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>False</UseWindowsForms>
     <RootNamespace>MRK</RootNamespace>
-    <ApplicationIcon>anghIcon.ico</ApplicationIcon>
+    <ApplicationIcon>anghami.ico</ApplicationIcon>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="anghIcon.ico" />
+    <Content Include="anghami.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,6 +41,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CssToThemePropertiesConverter\CssToThemePropertiesConverter.csproj" />
     <ProjectReference Include="..\DiscordRPCIntegration\DiscordRPCIntegration.csproj" />
+    <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
 
 </Project>

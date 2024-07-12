@@ -1,4 +1,5 @@
 ﻿using MRK;
+using MRK.Models;
 using static System.Console;
 
 var rpc = AnghamiRPC.Instance;
@@ -13,7 +14,13 @@ if (!rpc.Initialize())
         .GetResult();
 }
 
-rpc.SetSong(0, "test song name", "elsors", "https://artwork.anghcdn.co/webp/?id=133275738&size=512");
+rpc.SetSong(new Song(0,
+                     "test",
+                     "elsors",
+                     "https://artwork.anghcdn.co/webp/?id=133275738&size=512",
+                     "buffering",
+                     "0:00",
+                     "3:00"));
 
 ReadLine();
 
