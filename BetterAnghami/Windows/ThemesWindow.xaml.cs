@@ -393,7 +393,7 @@ namespace MRK
         }
 
         /// <summary>
-        /// Theme property value textbox focused handler
+        /// Theme property value textbox selection changed handler
         /// </summary>
         private void OnValueTextboxSelectionChanged(object sender, RoutedEventArgs e)
         {

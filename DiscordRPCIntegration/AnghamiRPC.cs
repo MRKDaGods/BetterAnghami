@@ -1,5 +1,6 @@
 ﻿using DiscordRPC;
 using MRK.Models;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace MRK
@@ -42,7 +43,6 @@ namespace MRK
         /// <summary>
         /// Sets a new presence with the provided song details
         /// </summary>
-        /// <param name="remainingTime">Remaining time in seconds</param>
         public void SetSong(Song song, int imageSize = 512)
         {
             if (!IsInitialized)
@@ -118,10 +118,15 @@ namespace MRK
             str = str.Trim();
 
             // 128 byte check
-            if (str.Length > 128)
+            var utf8 = Encoding.UTF8;
+            if (utf8.GetByteCount(str) > 128)
             {
+                // GetString adds an extra 2 bytes for some reason, so copy first 123 bytes from original string
+
                 // very long str...
-                str = string.Concat(str.AsSpan(0, 125), "...");
+                str = string.Concat(
+                    utf8.GetString(new ArraySegment<byte>(utf8.GetBytes(str), 0, 123)),
+                    "...");
             }
 
             return str;
