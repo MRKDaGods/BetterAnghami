@@ -11,6 +11,8 @@ namespace MRK
 {
     public class ThemeManager
     {
+        private const string DefaultThemeGuid = "9046799d217c468c951eec725a221c3b";
+
         /// <summary>
         /// Currently installed themes' metadata
         /// <para>Call <see cref="LoadInstalledThemes" /> first</para>
@@ -389,8 +391,13 @@ namespace MRK
             if (string.IsNullOrEmpty(selectedThemeId) ||
                 (targetTheme = InstalledThemes.Find(x => x.Id == selectedThemeId)) == null)
             {
-                // select first built in theme
-                targetTheme = InstalledThemes[0];
+                // find default theme
+                targetTheme = InstalledThemes.Find(x => x.Id == DefaultThemeGuid);
+                if (targetTheme == null)
+                {
+                    // select first built in theme
+                    targetTheme = InstalledThemes[0];
+                }
 
                 // store it
                 SetSelectedTheme(targetTheme);

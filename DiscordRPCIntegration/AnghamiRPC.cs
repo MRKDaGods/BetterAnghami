@@ -9,27 +9,31 @@ namespace MRK
     {
         private const string AppId = "1180106494042185778";
 
+        /// <summary>
+        /// RPC thread sleep interval
+        /// </summary>
+        private const int RpcThreadInterval = 1000;
+
+        /// <summary>
+        /// Maximum time allowed for unsynchronization of RPC and realtime anghami song remaining time
+        /// </summary>
+        private const int MaxAllowedUnsynchronizedTime = 5;
+
         private readonly DiscordRpcClient _client;
+        private readonly ISongHost _songHost;
 
         /// <summary>
         /// Is our client initialized and running?
         /// </summary>
         public bool IsInitialized => _client.IsInitialized;
 
-        private static AnghamiRPC? _instance;
-
-        /// <summary>
-        /// Singleton instance
-        /// </summary>
-        public static AnghamiRPC Instance
-        {
-            get => _instance ??= new AnghamiRPC();
-        }
-
-        public AnghamiRPC()
+        public AnghamiRPC(ISongHost songHost)
         {
             // create client
             _client = new DiscordRpcClient(AppId);
+
+            // set song host
+            _songHost = songHost;
         }
 
         /// <summary>
@@ -108,7 +112,7 @@ namespace MRK
                 _client.Deinitialize();
             }
         }
-        
+
         /// <summary>
         /// Ensures that a string satisfies the Discord RPC spec
         /// </summary>
@@ -130,6 +134,58 @@ namespace MRK
             }
 
             return str;
+        }
+
+        /// <summary>
+        /// RPC thread loop
+        /// </summary>
+        private void RpcThread()
+        {
+            // keep track of last set song
+            Song? lastSetSong = null;
+            string? lastSetPlayState = null;    // play state of last sent RPC
+            int lastRemainingTime = 0;          // remaining time of last sent RPC
+
+            while (IsInitialized && _songHost.IsRunning)
+            {
+                // check song
+                var song = _songHost.GetCurrentlyPlayingSong(); //anghWindow.Dispatcher.Invoke(() => anghWindow.GetCurrentlyPlayingSong()).GetAwaiter().GetResult();
+                if (song != lastSetSong || (song != null && (lastSetPlayState != song.PlayState
+                                                             || Math.Abs(song.RemainingTime - lastRemainingTime) > MaxAllowedUnsynchronizedTime)))
+                {
+                    if (song != null)
+                    {
+                        // update local states
+                        lastSetPlayState = song.PlayState;
+                        lastRemainingTime = song.RemainingTime;
+
+                        // update rpc
+                        SetSong(song);
+                    }
+                    else
+                    {
+                        // clear everything
+                        Clear();
+
+                        lastSetPlayState = null;
+                        lastRemainingTime = 0;
+                    }
+
+                    lastSetSong = song;
+                }
+
+                Thread.Sleep(RpcThreadInterval);
+            }
+        }
+
+        /// <summary>
+        /// Starts a new thread running the discord rpc loop
+        /// </summary>
+        public void StartRpcThread()
+        {
+            // start thread
+            new Thread(RpcThread)
+                .Start();
         }
 
         [GeneratedRegex(@"&size=\d+")]

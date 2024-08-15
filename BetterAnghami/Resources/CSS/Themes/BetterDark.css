@@ -1,12 +1,12 @@
-﻿/* Another dark theme */
+﻿/* Better dark theme */
 /*
     <metadata>
         {
-            "Id": "a9cb6674bb9f4e9f98a5b3c8b0ce9eb3",
-            "Name": "Another Dark",
-            "CreatorId": 1,
+            "Id": "9046799d217c468c951eec725a221c3b",
+            "Name": "Better Dark",
+            "CreatorId": 0,
             "CreatorName": "Mohamed Ammar",
-            "Description": "Another anghami dark theme",
+            "Description": "A better dark theme :)",
             "Version": "1.0",
             "IsBuiltIn": true
         }
@@ -14,17 +14,17 @@
 */
 
 :root {
-    --nav-bg: #2b2d2f;
+    --nav-bg: #131415;
     --nav-border: 1px solid #2b2d2f;
-    --header-bg: #1b1c1d;
+    --header-bg: #131415;
     --header-border: 1px solid #2b2d2f;
-    --app-background: #2e2e2e;
-    --main-background: #1b1c1d;
+    --app-background: #131415;
+    --main-background: #131415;
     --app-borders: #333;
     --sidebar-background: #272727;
     --light-background: #1b1b1b;
     --gray-light-background: #3b3b3b;
-    --text-color: #e8e8e8;
+    --text-color: #FFFFFFFF;
     --list-item-hover: #0F0F0F;
     --list-item-shadow: #393939;
     --text-color-dark: #919191;
@@ -36,18 +36,18 @@
     --date-info: #efefefb8;
     --semi-dark-border: #292929;
     --default-border-color: #3c3c3c;
-    --light-white: #323232;
+    --light-white: #131415;
     --placeholder-background: #606060;
     --error: red;
     --toastr-bg: #3B3B3B;
     --toastr-border: #3B3B3B;
     --toastr-text: #000;
     --toastr-btn-bg: #fff;
-    --player-separator: rgba(112,112,112, .4);
-    --context-header: #2c2c2c;
-    --player-background: #000000;
+    --player-separator: rgba(112,112,112, 0.4);
+    --context-header: #131415;
+    --player-background: #131415;
     --player-box-shadow: #4e4e4e57;
-    --pref-box-shadow: 0px 0px 15px 0px rgba(0, 0, 0, .15);
+    --pref-box-shadow: 0px 0px 15px 0px rgba(0, 0, 0, 0.15);
     --track-shadow: 0px 1px 8px 0px #080808;
     --search-item-shadow: 0px 0px 20px 5px #080808;
     --search-color: #fff;
@@ -82,8 +82,8 @@
     --chats-attachement-border: #4B4D53;
     --chats-scroller-background: #474950;
     --chats-scroller-thumb: rgb(37, 41, 44);
-    --semi-transparent-background: rgba(27, 27, 27, .9);
-    --active-tab-border: rgba(255, 255, 255, .3);
+    --semi-transparent-background: rgba(27, 27, 27, 0.9);
+    --active-tab-border: rgba(255, 255, 255, 0.3);
     --upload-music-banner-bg-img: url(https://cdnweb.anghami.com/web/assets/img/upload-music/banner-bg-dark.png);
     --upload-music-banner-files-uploaded-bg: url(https://cdnweb.anghami.com/web/assets/img/upload-music/files-uploaded-dark.png);
     --upload-music-song-placeholder: url(https://cdnweb.anghami.com/web/assets/img/upload-music/upload-image-song-placeholder-dark.png);
@@ -167,7 +167,7 @@
     --suggestion-border: transparent;
     --borderline: #2f2f2f;
     --inbox-hover: var(--light-background);
-    --inbox-shadow: 2px 1px 8px 2px rgba(199, 199, 199, .1);
+    --inbox-shadow: 2px 1px 8px 2px rgba(199, 199, 199, 0.1);
     --library-likes: url(https://cdnweb.anghami.com/web/assets/icons/all/library_likes_dark.svg);
     --library-downloads: url(https://cdnweb.anghami.com/web/assets/icons/all/library_downloads_dark.svg);
     --library-recently: url(https://cdnweb.anghami.com/web/assets/icons/all/library_recently_dark.svg);
@@ -186,26 +186,26 @@
     --live-comment-input-background: #2B2D2F;
     --live-comment-input-border-color: #35373B;
     --live-comment-input-placeholder: #777A7E;
-    --live-button-default-background: rgba(64, 64, 64, .5);
-    --live-invite-friends-button-background: rgba(255, 255, 255, .05);
+    --live-button-default-background: rgba(64, 64, 64, 0.5);
+    --live-invite-friends-button-background: rgba(255, 255, 255, 0.05);
     --live-badge-image: url(https://cdnweb.anghami.com/web/assets/img/concert/live-badge-dark-en.png);
     --live-badge-image-ar: url(https://cdnweb.anghami.com/web/assets/img/concert/live-badge-dark-ar.png);
     --live-badge-height: 2em;
     --live-badge-width: 5.125em;
-    --live-members-container-bg: rgba(255,255,255,.11);
+    --live-members-container-bg: rgba(255,255,255,0.11);
     --live-brod-search-shadow: 0px 3px 10px #00000048;
     --live-brod-search-background: #292929;
     --live-brod-header-shadow: 0px 7px 13px #00000034;
-    --live-feed-seperating-line: 1px solid rgba(255, 255, 255, .05);
+    --live-feed-seperating-line: 1px solid rgba(255, 255, 255, 0.05);
     --live-name-selected-bg: #e8e8e8;
-    --live-name-border: 1px solid rgba(112,112,112,.17);
+    --live-name-border: 1px solid rgba(112,112,112,0.17);
     --live-name-bg: #000000;
     --live-name-color: #ffffff;
     --live-name-color-selected: black;
     --live-dialog-bg: #1B1B1B;
     --live-listener-arrow: --white;
-    --comment-popover-bg: #323232;
-    --percentage-match-color: rgba(255,255,255,.6);
+    --comment-popover-bg: #131415;
+    --percentage-match-color: rgba(255,255,255,0.6);
     --live-claps-empty-screen-image: url(https://cdnweb.anghami.com/web/assets/img/spq/claps-empty-screen-dark.svg);
     --live-members-empty-screen-image: url(https://cdnweb.anghami.com/web/assets/img/spq/members-empty-screen-dark.svg);
     --live-queue-empty-screen-image: url(https://cdnweb.anghami.com/web/assets/img/spq/queue-empty-screen-dark.svg);
@@ -273,18 +273,18 @@
     --card-item-border: #2b2d2f;
     --card-item-title-color: #f8f8f8;
     --card-item-subtitle-color: #a1a5ac;
-    --search-bar-bg: #e5e7ea;
+    --search-bar-bg: #131415;
     --search-bar-text: #000000;
     --search-bar-border: 1px solid #777a7e;
     --banner-card-bg: #131415;
     --banner-card-bg-border: #f2f3f5;
-    --link-card-background-color: #2b2d2f;
+    --link-card-background-color: #1a1a1a;
     --music-selector-color: #f8f8f8;
     --music-selector-bg: #35373b;
     --music-selector-border: 1px solid #35373b;
     --navbar-icon-color: #777a7e;
     --navbar-icon-color-selected: #f8f8f8;
-    --search-bg: #e5e7ea;
+    --search-bg: #131415;
     --search-border: #777a7e;
     --search-text-color: #1b1c1d;
     --search-header-text: #f8f8f8;
@@ -300,9 +300,9 @@
     --search-seeAll-btn-bg: #313336;
     --search-seeAll-btn-bg-hover: #404246;
     --search-seeAll-text: #f8f8f8;
-    --search-input-bg: #e5e7ea;
-    --search-input-border: #777a7e;
-    --search-input-text-color: #131415;
+    --search-input-bg: #131415;
+    --search-input-border: #2b2d2f;
+    --search-input-text-color: var(--text-color);
     --search-input-text-placeholder-color: #a1a5ac;
     --search-dropdown-header-color: #777a7e;
     --search-dropdown-header-hover-color: #a1a5ac;
@@ -326,8 +326,8 @@
     --ang-main-padding-top: 1em;
     --ang-main-padding-sides: 2.6087em;
     --page-title-margin-bottom: 3.2em;
-    --large-list-item-padding: .8em;
-    --brand-purple: #8d00f2;
+    --large-list-item-padding: 0.8em;
+    --brand-purple: #3718C7FF;
     --brand-purple-light: #e1418c;
     --brand-blue: #018af0;
     --brand-blue-2: #4db2dd;
@@ -347,7 +347,7 @@
     --youtube: #ff0000;
     --disabled: #6c757d;
     --story-background: #191919;
-    --hover-carousel-item: rgba(1, 1, 1, .4);
+    --hover-carousel-item: rgba(1, 1, 1, 0.4);
     --font-main-latin: "Euclid Circular A", sans-serif;
     --font-main-arabic: "Tajawal", sans-serif;
     --plus-badge-img: url(https://cdnweb.anghami.com/web/assets/img/logos/PLUS_BADGE.png);
@@ -359,13 +359,13 @@
     --eid-page-pink: #f7adce;
     --carousel-arrow-boxshadow: 0px 0px 6px #00000029;
     --section-margin-bottom: 3.5em;
-    --section-title-margin-bottom: .9em;
+    --section-title-margin-bottom: 0.9em;
     --carousel-side-margin: 2.6087em;
     --card-item-title-margin: 8px;
     --card-item-border-radius: 6px;
     --card-item-title-font-size: 1.15em;
     --card-item-title-font-weight: 700;
-    --card-item-subtitle-font-size: .9em;
+    --card-item-subtitle-font-size: 0.9em;
     --wide-card-padding: 1em;
     --link-card-super-title-color: #a1a5ac;
     --overlay-play-btn-bg: #ffffff;

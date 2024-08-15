@@ -45,3 +45,9 @@ i[_ngcontent-anghami-web-v2-c99] {
     width: 100%;
     margin-left: 0;
 }
+
+/* Playlist song name text */
+.cell-title[_ngcontent-anghami-web-v2-c202] {
+    font-weight: 500;
+    font-size: 1.1em;
+}

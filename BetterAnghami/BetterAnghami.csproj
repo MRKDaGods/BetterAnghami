@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <None Remove="Resources\CSS\BetterAnghami.css" />
-    <None Remove="Resources\CSS\Themes\AnotherDark.css" />
+    <None Remove="Resources\CSS\Themes\BetterDark.css" />
     <None Remove="Resources\CSS\Themes\DefaultDark.css" />
     <None Remove="Resources\HTML\ThemesButton.html" />
   </ItemGroup>
@@ -25,7 +25,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\CSS\BetterAnghami.css" />
-    <EmbeddedResource Include="Resources\CSS\Themes\AnotherDark.css" />
+    <EmbeddedResource Include="Resources\CSS\Themes\BetterDark.css" />
     <EmbeddedResource Include="Resources\CSS\Themes\DefaultDark.css" />
     <EmbeddedResource Include="Resources\HTML\ThemesButton.html" />
   </ItemGroup>

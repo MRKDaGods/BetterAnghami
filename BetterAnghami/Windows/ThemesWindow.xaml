@@ -19,11 +19,12 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary
                     Source="pack://application:,,,/ColorPicker;component/Styles/DefaultColorPickerStyle.xaml" />
-                
+
                 <ResourceDictionary>
                     <conv:StringToColorConverter x:Key="StringToColorConverter" />
                     <conv:ColorToInvertedColorConverter x:Key="ColorToInvertedColorConverter" />
                     <conv:ColorToReadableColorConverter x:Key="ColorToReadableColorConverter" />
+                    <conv:SelectedThemeConverter x:Key="SelectedThemeConverter" />
                 </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
@@ -56,7 +57,7 @@
                Content="Loading themes" />
 
         <!-- Insalled themes toolbar -->
-        <Grid Grid.Row="0" Grid.Column="0">
+        <Grid Grid.Row="0" Grid.Column="0" Margin="0, 0, 4, 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -90,9 +91,9 @@
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            
+
             <!-- Theme container -->
-            <ScrollViewer Margin="4, 16" VerticalScrollBarVisibility="Auto">
+            <ScrollViewer Margin="4, 4, 4, 0" VerticalScrollBarVisibility="Auto">
                 <ItemsControl x:Name="themesControl" d:ItemsSource="{d:SampleData ItemCount=3}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -157,19 +158,23 @@
                                             </Grid.ColumnDefinitions>
 
                                             <Label Grid.Column="0" FontWeight="Medium" FontSize="18" Content="{Binding Name}" />
-                                            <TextBlock Grid.Column="1" FontWeight="Bold" FontSize="12" Foreground="#FFA1A5AC" VerticalAlignment="Center" Text="Built In">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="{x:Type TextBlock}">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                            
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal">
+                                                <TextBlock Name="selectedTextBlock" FontWeight="Medium" FontSize="12" Margin="0 0 10 0" VerticalAlignment="Center" Text="Selected" Visibility="Collapsed" d:Visibility="Visible" />
+                                                <TextBlock FontWeight="Bold" FontSize="12" Foreground="#FFA1A5AC" VerticalAlignment="Center" Text="Built In" d:Visibility="Visible">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="{x:Type TextBlock}">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
 
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsBuiltIn}" Value="True">
-                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsBuiltIn}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </StackPanel>
                                         </Grid>
 
                                         <!-- Creator Name -->
@@ -230,7 +235,7 @@
         </Grid>
 
         <!-- Theme editor toolbar -->
-        <Grid Grid.Row="0" Grid.Column="1" Height="30" Margin="10, 0, 0, 0">
+        <Grid Grid.Row="0" Grid.Column="1" Height="30" Margin="12, 0, 0, 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -275,7 +280,7 @@
                         <Setter Property="Padding" Value="12, 0" />
                     </Style>
                 </StackPanel.Resources>
-                
+
                 <Button x:Name="applyThemeButton" Content="Apply Theme" Click="OnApplyThemeClick" />
                 <Button x:Name="saveChangesButton" Content="Save Changes" Click="OnSaveChangesClick" />
                 <Button x:Name="editCssButton" Content="Edit CSS" Click="OnEditThemeCssClick" />
@@ -286,7 +291,7 @@
         <!-- Splitter-->
         <Rectangle Grid.Column="1"
                    Grid.RowSpan="2"
-                   Margin="4, -16"
+                   Margin="3, -16"
                    Fill="#282828"
                    Width="1"
                    HorizontalAlignment="Left" />
@@ -306,12 +311,12 @@
                Visibility="Collapsed"
                FontWeight="Medium"
                Content="Loading Theme Properties" />
-        
+
         <!-- Main Container -->
         <ScrollViewer x:Name="editorScrollView"
                       Grid.Row="1"
                       Grid.Column="1"
-                      Margin="12, 16, 0, 0"
+                      Margin="12, 4, 0, 0"
                       VerticalScrollBarVisibility="Auto">
             <ItemsControl x:Name="themePropertiesControl"
                           AlternationCount="2"
@@ -354,7 +359,7 @@
                                                         <Border.Background>
                                                             <SolidColorBrush Color="{Binding Color}" />
                                                         </Border.Background>
-                                                        
+
                                                         <!-- Color text -->
                                                         <TextBlock FontSize="10"
                                                                    HorizontalAlignment="Center"

@@ -7,10 +7,14 @@
         mc:Ignorable="d"
         Title="Better Anghami" Height="800" Width="1200"
         WindowStartupLocation="CenterScreen"
-        Style="{DynamicResource CustomWindowStyle}"
         Loaded="OnWindowLoaded"
         Closing="OnWindowClosing">
-    <!-- for now we will just have the browser -->
+    <Window.Style>
+        <Style TargetType="Window" BasedOn="{StaticResource CustomWindowStyle}">
+            <Setter Property="BorderBrush" Value="Transparent" />
+        </Style>
+    </Window.Style>
+    
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />

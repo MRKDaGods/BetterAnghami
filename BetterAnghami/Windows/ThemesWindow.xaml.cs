@@ -39,6 +39,8 @@ namespace MRK
         private readonly Dictionary<ThemeProperty, List<ThemeColor>> _propertyColors;
         private ColorPropertyEdit? _currentColorEdit;
 
+        private ThemeMetadata? _lastSelectedLabelOwner;
+
         /// <summary>
         /// Flag to disable raising of events caused by local changes
         /// </summary>
@@ -72,8 +74,14 @@ namespace MRK
         /// </summary>
         private static ThemeManager ThemeManager => ThemeManager.Instance;
 
+#nullable disable
+        public static ThemesWindow Instance { get; private set; }
+#nullable enable
+
         public ThemesWindow()
         {
+            Instance = this;
+
             _propertyTextboxes = [];
             _propertyColors = [];
 
@@ -132,6 +140,9 @@ namespace MRK
                     }
 
                     await SetSelectedTheme(themeToSelect);
+
+                    // update selected theme
+                    UpdateSelectedLabel();
                 },
                 100);
         }
@@ -287,7 +298,7 @@ namespace MRK
             colorContainerControl.ForceSetItemSource(colors);
 
             var prop = (ThemeProperty)textbox.Tag;
-            
+
             // store colors
             _propertyColors[prop] = colors;
 
@@ -538,7 +549,7 @@ namespace MRK
                     mainInstruction: "An error has occurred",
                     content: error.ToString(),
                     buttons: [ButtonType.Ok]);
-                
+
                 // keep the dirty flag for now
                 return;
             }
@@ -562,6 +573,9 @@ namespace MRK
 
             // apply theme properties
             await AnghamiWindow.Instance.ApplyThemeImmediate(_currentThemeProperties);
+
+            // update selected label
+            UpdateSelectedLabel();
         }
 
         /// <summary>
@@ -669,7 +683,7 @@ namespace MRK
 
             // which colors come next?
             var colors = _propertyColors[_currentColorEdit.Property];
-            
+
             // flag to know if we have found our color
             bool found = false;
             foreach (var color in colors)
@@ -722,6 +736,47 @@ namespace MRK
             {
                 colorPicker.IsEnabled = enabled.Value;
             }
+        }
+
+        /// <summary>
+        /// Controls a ThemeMetadata's selected label visiblity
+        /// </summary>
+        private void SetSelectedLabelVisible(ThemeMetadata owner, bool visible)
+        {
+            var container = GetThemeContainer<Border>(owner, 2);
+            if (container != null)
+            {
+                var label = container.FindName("selectedTextBlock") as TextBlock;
+                if (label != null)
+                {
+                    label.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Updates the selected label visiblity
+        /// </summary>
+        private void UpdateSelectedLabel()
+        {
+            var selectedTheme = ThemeManager.SelectedTheme;
+            if (_lastSelectedLabelOwner == selectedTheme)
+            {
+                return;
+            }
+
+            // hide old label
+            if (_lastSelectedLabelOwner != null)
+            {
+                SetSelectedLabelVisible(_lastSelectedLabelOwner, false);
+            }
+
+            if (selectedTheme != null)
+            {
+                SetSelectedLabelVisible(selectedTheme, true);
+            }
+
+            _lastSelectedLabelOwner = selectedTheme;
         }
     }
 }

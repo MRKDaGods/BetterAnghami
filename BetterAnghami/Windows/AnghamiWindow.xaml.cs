@@ -8,15 +8,21 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media;
 
 namespace MRK
 {
     /// <summary>
     /// Main Window
     /// </summary>
-    public partial class AnghamiWindow : Window
+    public partial class AnghamiWindow : Window, ISongHost
     {
         private readonly ObjectReference<bool> _running;
+
+        /// <summary>
+        /// Anghami RPC instance
+        /// </summary>
+        private readonly AnghamiRPC _anghamiRPC;
 
         /// <summary>
         /// Serializer options for Song JSON
@@ -58,6 +64,9 @@ namespace MRK
             // create running ref
             _running = new(true);
 
+            // instantiate rpc singleton
+            _anghamiRPC = new AnghamiRPC(this);
+
             // json options
             _songJsonSerializerOptions = new JsonSerializerOptions
             {
@@ -88,7 +97,7 @@ namespace MRK
             }
 
             // clean up rpc if enabled
-            AnghamiRPC.Instance.Stop();
+            _anghamiRPC.Stop();
 
             // set running false, for other threads to exit
             IsRunning = false;
@@ -180,7 +189,7 @@ namespace MRK
         /// <summary>
         /// Checks for AnghamiBase in 500ms intervals
         /// </summary>
-        private async Task WaitForAnghamiLoad()
+        private static async Task WaitForAnghamiLoad()
         {
             const string findAnghamiBase = """document.body.innerHTML.indexOf("anghami-base")""";
 
@@ -199,7 +208,7 @@ namespace MRK
             ActionManager.RegisterAction(WebViewEvent.SourceChanged, new RemoveDesktopLinkAction(WebView));
             ActionManager.RegisterAction(WebViewEvent.SourceChanged, new SetSelectedThemeAction(WebView));
             ActionManager.RegisterAction(WebViewEvent.SourceChanged, new InjectBetterUI(WebView));
-            ActionManager.RegisterAction(WebViewEvent.SourceChanged, new InitializeDiscordRPC(WebView));
+            ActionManager.RegisterAction(WebViewEvent.SourceChanged, new InitializeDiscordRPC(WebView, _anghamiRPC));
         }
 
         /// <summary>
@@ -248,6 +257,17 @@ namespace MRK
             await ActionManager.ExecuteActionRaw($"""
                 document.body.style.cssText = `{inlineCss}`;
                 """);
+
+            // update window title bar
+            var appBg = props.Find(x => x.Name == "--app-background");
+            if (appBg != null)
+            {
+                var color = ColorUtility.MatchColors(appBg.Value).FirstOrDefault()?.Color;
+                if (color != null)
+                {
+                    BorderBrush = new SolidColorBrush(color.Value);
+                }
+            }
         }
 
         /// <summary>
@@ -319,6 +339,14 @@ namespace MRK
             {
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Returns the currently playing song synchronously
+        /// </summary>
+        Song? ISongHost.GetCurrentlyPlayingSong()
+        {
+            return Dispatcher.Invoke(GetCurrentlyPlayingSong).GetAwaiter().GetResult();
         }
     }
 }
