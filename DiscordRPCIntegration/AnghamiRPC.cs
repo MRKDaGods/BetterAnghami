@@ -69,6 +69,7 @@ namespace MRK
 
             // build presence
             var presence = new RichPresence()
+                .WithType(ActivityType.Listening)
                 .WithTimestamps(ts)
                 .WithDetails(FixStringForRPC(song.Name))
                 .WithState(FixStringForRPC(stateText))
