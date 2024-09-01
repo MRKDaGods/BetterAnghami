@@ -294,7 +294,7 @@ namespace MRK
                     // get song name and id
                     var titleAnchor = infoContainer.querySelector(".action-title");
                     var name = titleAnchor.innerText;
-                    var id = parseInt(titleAnchor.href.substring(titleAnchor.href.lastIndexOf('/') + 1));
+                    var id = parseInt(titleAnchor.href.substring(titleAnchor.href.lastIndexOf('/') + 1)) || -1; // local files have no id
 
                     // get artist
                     var artistAnchor = infoContainer.querySelector(".action-artist");
