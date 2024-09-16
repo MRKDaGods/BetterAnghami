@@ -58,7 +58,9 @@ namespace MRK
             Timestamps? ts = null;
             if (song.RemainingTime > 0 && song.IsPlaying)
             {
-                ts = Timestamps.FromTimeSpan(song.RemainingTime);
+                var now = DateTime.UtcNow;
+                ts = new Timestamps(now.Subtract(TimeSpan.FromSeconds(song.ElapsedTime)),
+                                    now.Add(TimeSpan.FromSeconds(song.RemainingTime)));
             }
 
             var stateText = $"by {song.Artist}";
