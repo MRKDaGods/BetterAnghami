@@ -30,13 +30,12 @@ Themes can be accessed using the dropdown menu on the top right <br/>
 
 ### Discord Rich Presence
 Showcase your music activity to friends on Discord with rich presence integration (with time left, paused, loading, etc)<br /> <br />
-#### v0.2.0
-<img src="https://github.com/MRKDaGods/BetterAnghami/assets/25166537/453f450a-a21a-4014-b964-0662654dc551" width="350" />
-
-#### v0.2.3
-![image](https://github.com/user-attachments/assets/c489ac62-c457-47bf-bcc8-401f09620b5a)
-![image](https://github.com/user-attachments/assets/37f54859-69c9-4f7e-a75b-6aee9a04bfce)
-
+#### Playing
+![image](https://github.com/user-attachments/assets/02732466-5f39-49bf-bc5d-b828e05574c0)
+#### Paused
+![image](https://github.com/user-attachments/assets/48f4a8e6-2ee0-4de6-8b8b-7b9d28bc7bda)
+#### Buffering
+![image](https://github.com/user-attachments/assets/2a6fe984-b1cd-49e9-bc9e-23dbe7bcc7f5)
 
 
 ## Building BetterAnghami
@@ -62,7 +61,7 @@ cd BetterAnghami
 ### Open in Visual Studio
 Open the project in Visual Studio:
 - Navigate to the cloned `BetterAnghami` directory
-- Double-click on the `BetterAnghami.sln` file to open it in Visual Studio.
+- Open `BetterAnghami.sln` in Visual Studio.
 
 
 *Visual Studio will automatically handle restoring dependencies and compiling the project when you run it.*
