@@ -58,7 +58,9 @@ namespace MRK
             Timestamps? ts = null;
             if (song.RemainingTime > 0 && song.IsPlaying)
             {
-                ts = Timestamps.FromTimeSpan(song.RemainingTime);
+                var now = DateTime.UtcNow;
+                ts = new Timestamps(now.Subtract(TimeSpan.FromSeconds(song.ElapsedTime)),
+                                    now.Add(TimeSpan.FromSeconds(song.RemainingTime)));
             }
 
             var stateText = $"by {song.Artist}";
@@ -69,6 +71,7 @@ namespace MRK
 
             // build presence
             var presence = new RichPresence()
+                .WithType(ActivityType.Listening)
                 .WithTimestamps(ts)
                 .WithDetails(FixStringForRPC(song.Name))
                 .WithState(FixStringForRPC(stateText))
@@ -78,14 +81,16 @@ namespace MRK
                     LargeImageText = FixStringForRPC(song.Name),
                 });
 
-            presence.Buttons =
-            [
-                new Button
-                {
-                    Label = "Play on ANGHAMI",
-                    Url = $"https://play.anghami.com/song/{song.Id}"
-                }
-            ];
+            // display play button for non local files
+            if (song.Id >= 0)
+            {
+                presence.Buttons = [
+                    new Button {
+                        Label = "Play on ANGHAMI",
+                        Url = $"https://play.anghami.com/song/{song.Id}"
+                    }
+                ];
+            }
 
             // send to discord
             _client.SetPresence(presence);
@@ -149,7 +154,7 @@ namespace MRK
             while (IsInitialized && _songHost.IsRunning)
             {
                 // check song
-                var song = _songHost.GetCurrentlyPlayingSong(); //anghWindow.Dispatcher.Invoke(() => anghWindow.GetCurrentlyPlayingSong()).GetAwaiter().GetResult();
+                var song = _songHost.GetCurrentlyPlayingSong();
                 if (song != lastSetSong || (song != null && (lastSetPlayState != song.PlayState
                                                              || Math.Abs(song.RemainingTime - lastRemainingTime) > MaxAllowedUnsynchronizedTime)))
                 {
