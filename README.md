@@ -17,19 +17,27 @@ BetterAnghami is an independent project developed by me. It is not affiliated wi
 
 ### Album View with a Custom Theme Applied
 Seemless visual experience that adapt beautifully to your chosen theme <br />
-<img src="https://github.com/MRKDaGods/BetterAnghami/assets/25166537/eaa39933-88d5-4ef0-a1ef-ce6f2ccb5ce8" width="600" />
+<img src="https://github.com/user-attachments/assets/d7884b3c-fa4c-4c0d-a9a7-b04bdc374b70" width="900" />
 
 ### Theme Editor
 Easily customize themes to match your style using the built-in theme editor <br/>
-<img src="https://github.com/MRKDaGods/BetterAnghami/assets/25166537/4aa3cd5d-0348-41a1-8c9d-a9c2dab9d38f" width="600" />
+<img src="https://github.com/user-attachments/assets/e2bfe0cf-6e18-4b80-8489-379a9d410332" width="900" />
+
 
 ### Accessing Themes
 Themes can be accessed using the dropdown menu on the top right <br/>
 <img src="https://github.com/MRKDaGods/BetterAnghami/assets/25166537/ce444ab3-03fd-467f-a921-ad6503ab2106" height="350" />
 
 ### Discord Rich Presence
-Showcase your music activity to friends on Discord with rich presence integration <br />
+Showcase your music activity to friends on Discord with rich presence integration (with time left, paused, loading, etc)<br /> <br />
+#### v0.2.0
 <img src="https://github.com/MRKDaGods/BetterAnghami/assets/25166537/453f450a-a21a-4014-b964-0662654dc551" width="350" />
+
+#### v0.2.3
+![image](https://github.com/user-attachments/assets/c489ac62-c457-47bf-bcc8-401f09620b5a)
+![image](https://github.com/user-attachments/assets/37f54859-69c9-4f7e-a75b-6aee9a04bfce)
+
+
 
 ## Building BetterAnghami
 
