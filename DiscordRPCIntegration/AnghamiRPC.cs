@@ -21,6 +21,10 @@ namespace MRK
 
         private readonly DiscordRpcClient _client;
         private readonly ISongHost _songHost;
+        private readonly Dictionary<int, string> _songAlbums;
+        private Task? _fetchSongAlbumTask;
+        private Song? _currentlyPlayingSong;
+        private readonly Queue<Song> _albumFetchQueue;
 
         /// <summary>
         /// Is our client initialized and running?
@@ -34,6 +38,9 @@ namespace MRK
 
             // set song host
             _songHost = songHost;
+
+            _songAlbums = [];
+            _albumFetchQueue =[];
         }
 
         /// <summary>
@@ -78,7 +85,7 @@ namespace MRK
                 .WithAssets(new Assets
                 {
                     LargeImageKey = ImageSizeRegex().Replace(song.ImgUrl, $"&size={imageSize}"),
-                    LargeImageText = FixStringForRPC(song.Name),
+                    LargeImageText = FixStringForRPC(GetSongAlbum(song)),
                 });
 
             // display play button for non local files
@@ -94,6 +101,64 @@ namespace MRK
 
             // send to discord
             _client.SetPresence(presence);
+
+            // update current song
+            _currentlyPlayingSong = song;
+        }
+
+        private string GetSongAlbum(Song song)
+        {
+            if (_songAlbums.TryGetValue(song.Id, out var album))
+            {
+                return album;
+            }
+
+            // if already in queue, return empty string
+            if (_albumFetchQueue.Contains(song))
+            {
+                return string.Empty;
+            }
+
+            // queue
+            _albumFetchQueue.Enqueue(song);
+
+            if (_fetchSongAlbumTask == null || _fetchSongAlbumTask.IsCompleted)
+            {
+                _fetchSongAlbumTask = FetchSongAlbumAsync(song)
+                    .ContinueWith(OnFetchSongAlbumCompleted);
+            }
+
+            return string.Empty;
+        }
+
+        private async Task<string> FetchSongAlbumAsync(Song song)
+        {
+            var url = $"https://play.anghami.com/song/{song.Id}";
+            var html = await new HttpClient().GetStringAsync(url);
+
+            var albumName = AlbumRegex().Match(html)
+                .Groups[1]
+                .Value;
+
+            return albumName;
+        }
+
+        private void OnFetchSongAlbumCompleted(Task<string> task)
+        {
+            var song = _albumFetchQueue.Dequeue();
+            _songAlbums[song.Id] = task.Result;
+
+            // update presence if the song is still playing
+            if (_currentlyPlayingSong == song)
+            {
+                SetSong(song);
+            }
+
+            if (_albumFetchQueue.Count > 0)
+            {
+                _fetchSongAlbumTask = FetchSongAlbumAsync(_albumFetchQueue.Peek())
+                    .ContinueWith(OnFetchSongAlbumCompleted);
+            }
         }
 
         /// <summary>
@@ -105,6 +170,8 @@ namespace MRK
             {
                 _client.ClearPresence();
             }
+
+            _currentlyPlayingSong = null;
         }
 
         /// <summary>
@@ -116,6 +183,8 @@ namespace MRK
             {
                 _client.Deinitialize();
             }
+
+            _currentlyPlayingSong = null;
         }
 
         /// <summary>
@@ -195,5 +264,8 @@ namespace MRK
 
         [GeneratedRegex(@"&size=\d+")]
         private static partial Regex ImageSizeRegex();
+
+        [GeneratedRegex(@"""inAlbum"":{""@type"":""MusicAlbum"",""name"":""([^""]+)"",""@id"":""[^""]+""}")]
+        private static partial Regex AlbumRegex();
     }
 }

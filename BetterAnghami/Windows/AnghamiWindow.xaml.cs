@@ -283,31 +283,31 @@ namespace MRK
             var json = await ActionManager.ExecuteActionRaw("""
                 (function() {
                     // too lazy to use getxxx
-                    var infoContainer = document.querySelector(".image-info-container");
+                    const infoContainer = document.querySelector(".image-info-container");
 
                     // get image url
-                    var bgImage = infoContainer.querySelector(".track-coverart").style.backgroundImage;
-                    var imgUrlStart = bgImage.indexOf('"') + 1;
-                    var imgUrlEnd = bgImage.lastIndexOf('"');
-                    var imgUrl = bgImage.substring(imgUrlStart, imgUrlEnd);
+                    const bgImage = infoContainer.querySelector(".track-coverart").style.backgroundImage;
+                    const imgUrlStart = bgImage.indexOf('"') + 1;
+                    const imgUrlEnd = bgImage.lastIndexOf('"');
+                    const imgUrl = bgImage.substring(imgUrlStart, imgUrlEnd);
                     
                     // get song name and id
-                    var titleAnchor = infoContainer.querySelector(".action-title");
-                    var name = titleAnchor.innerText;
-                    var id = parseInt(titleAnchor.href.substring(titleAnchor.href.lastIndexOf('/') + 1)) || -1; // local files have no id
+                    const titleAnchor = infoContainer.querySelector(".action-title");
+                    const name = titleAnchor.innerText;
+                    const id = parseInt(titleAnchor.href.substring(titleAnchor.href.lastIndexOf('/') + 1)) || -1; // local files have no id
 
                     // get artist
-                    var artistAnchor = infoContainer.querySelector(".action-artist");
-                    var artist = artistAnchor.innerText;
+                    const artistAnchor = infoContainer.querySelector(".action-artist");
+                    const artist = artistAnchor.innerText;
 
                     // play details
-                    var mainPlayer = document.querySelector(".main-player");
-                    var playPauseCont = mainPlayer.querySelector(".play-pause-cont");
-                    var playState = playPauseCont.children[0].classList[1]; // button name is the second class as of 12/7/2024
+                    const mainPlayer = document.querySelector(".main-player");
+                    const playPauseCont = mainPlayer.querySelector(".play-pause-cont");
+                    const playState = playPauseCont.children[0].classList[1]; // button name is the second class as of 12/7/2024
 
                     // durations
-                    var durations = mainPlayer.querySelectorAll(".duration-text");
-                    var durStart = "--", remainingTime = "--";
+                    const durations = mainPlayer.querySelectorAll(".duration-text");
+                    let durStart = "--", durEnd = "--";
                     if (durations.length == 2) {
                         durStart = durations[0].innerText;
                         durEnd = durations[1].innerText; // remaining time

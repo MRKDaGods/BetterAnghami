@@ -1,5 +1,4 @@
 ﻿using Microsoft.Web.WebView2.Core;
-using Ookii.Dialogs.Wpf;
 using System.Threading.Tasks;
 
 namespace MRK.Actions
@@ -18,11 +17,11 @@ namespace MRK.Actions
 
             if (preloaderExists != "true")
             {
-                Utils.ShowDialog(
-                    windowTitle: "Error",
-                    mainInstruction: "Cannot locate preloader",
-                    content: "This is probably due to bad internet connection, please restart BetterAnghami",
-                    buttons: [ButtonType.Ok]);
+                //Utils.ShowDialog(
+                //    windowTitle: "Error",
+                //    mainInstruction: "Cannot locate preloader",
+                //    content: "This is probably due to bad internet connection, please restart BetterAnghami",
+                //    buttons: [ButtonType.Ok]);
 
                 return;
             }
