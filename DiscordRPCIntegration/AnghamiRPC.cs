@@ -40,7 +40,7 @@ namespace MRK
             _songHost = songHost;
 
             _songAlbums = [];
-            _albumFetchQueue =[];
+            _albumFetchQueue = [];
         }
 
         /// <summary>
@@ -134,7 +134,13 @@ namespace MRK
         private async Task<string> FetchSongAlbumAsync(Song song)
         {
             var url = $"https://play.anghami.com/song/{song.Id}";
-            var html = await new HttpClient().GetStringAsync(url);
+            using var client = new HttpClient();
+
+            // Set the CoreWebView user agent
+            client.DefaultRequestHeaders.Add(
+                "User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36 Edg/91.0.864.59");
+
+            var html = await client.GetStringAsync(url);
 
             var albumName = AlbumRegex().Match(html)
                 .Groups[1]
