@@ -1,5 +1,4 @@
 ﻿using Microsoft.Web.WebView2.Core;
-using System.Threading.Tasks;
 
 namespace MRK.Actions
 {
@@ -14,7 +13,7 @@ namespace MRK.Actions
         /// Should the action wait for Anghami to load? (Check for AnghamiBase)
         /// </summary>
         public virtual bool WaitForLoad => false;
-        
+
         /// <summary>
         /// Delay before executing the action
         /// </summary>

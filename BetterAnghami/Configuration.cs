@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace MRK
 {
@@ -136,7 +134,7 @@ namespace MRK
                 _config[key] = value;
 
                 // save config on another thread
-                Task.Run(SaveConfig);
+                _ = Task.Run(SaveConfig);
             }
         }
     }

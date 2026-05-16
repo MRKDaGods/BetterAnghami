@@ -1,5 +1,4 @@
 ﻿using Microsoft.Web.WebView2.Core;
-using System.Threading.Tasks;
 
 namespace MRK.Actions
 {
@@ -14,7 +13,7 @@ namespace MRK.Actions
 
         public override async Task Execute()
         {
-            string injectedCss = await Utils.ReadEmbeddedResource("CSS.BetterAnghami.css");
+            string injectedCss = await AppUtils.ReadEmbeddedResource("CSS.BetterAnghami.css");
 
             // create <style> element, but inject in body to override inline body styling
             await WebView.ExecuteScriptAsync($"""

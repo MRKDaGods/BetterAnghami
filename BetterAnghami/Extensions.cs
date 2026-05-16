@@ -28,7 +28,7 @@ namespace MRK
                     color.G = color.R;
                     color.R = tmp;
                 }
-                
+
                 return color;
             }
             catch
@@ -78,7 +78,7 @@ namespace MRK
                 var result = (child as T) ?? GetChildOfType<T>(child);
                 if (result != null) return result;
             }
-            
+
             return null;
         }
     }

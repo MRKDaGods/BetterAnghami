@@ -1,14 +1,10 @@
-﻿using Microsoft.Web.WebView2.Core;
-using MRK.Actions;
-using MRK.Models;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
+﻿using System.ComponentModel;
 using System.Text.Json;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
+using Microsoft.Web.WebView2.Core;
+using MRK.Actions;
+using MRK.Models;
 
 namespace MRK
 {
@@ -18,6 +14,11 @@ namespace MRK
     public partial class AnghamiWindow : Window, ISongHost
     {
         private readonly ObjectReference<bool> _running;
+
+        /// <summary>
+        /// Serializes concurrent SourceChanged invocations so they don't race
+        /// </summary>
+        private readonly SemaphoreSlim _sourceChangedGate = new(1, 1);
 
         /// <summary>
         /// Anghami RPC instance
@@ -36,11 +37,7 @@ namespace MRK
         /// </summary>
         public bool IsRunning
         {
-            get
-            {
-                return _running.Value;
-            }
-
+            get { return _running.Value; }
             set
             {
                 lock (_running)
@@ -52,6 +49,7 @@ namespace MRK
 
 #nullable disable
         public static AnghamiWindow Instance { get; private set; }
+
 #nullable enable
 
         private static ActionManager ActionManager => ActionManager.Instance;
@@ -70,7 +68,7 @@ namespace MRK
             // json options
             _songJsonSerializerOptions = new JsonSerializerOptions
             {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             };
 
             InitializeComponent();
@@ -111,6 +109,24 @@ namespace MRK
             // initialize webview
             await webViewControl.EnsureCoreWebView2Async();
 
+            webViewControl.DefaultBackgroundColor = System.Drawing.Color.FromArgb(255, 9, 9, 11);
+
+            // inject dark cover at document creation to block page content until loading screen takes over
+            await WebView.AddScriptToExecuteOnDocumentCreatedAsync(
+                """
+                (function () {
+                    var s = document.createElement('style');
+                    s.id = 'mrk-cover-style';
+                    s.textContent = 'html::before{content:"";position:fixed!important;inset:0!important;z-index:2147483647!important;background:#09090b!important;pointer-events:none}';
+                    document.documentElement.appendChild(s);
+                    setTimeout(function () {
+                        var el = document.getElementById('mrk-cover-style');
+                        if (el) el.remove();
+                    }, 8000);
+                })();
+                """
+            );
+
             // attach event handlers
             WebView.DOMContentLoaded += OnWebViewDOMContentLoaded;
             WebView.SourceChanged += OnWebViewSourceChanged;
@@ -129,7 +145,10 @@ namespace MRK
             RegisterDOMContentLoadedActions();
         }
 
-        private void OnWebViewMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+        private void OnWebViewMessageReceived(
+            object? sender,
+            CoreWebView2WebMessageReceivedEventArgs e
+        )
         {
             // for now we only have themes
             if (e.WebMessageAsJson == "\"themes\"")
@@ -142,7 +161,10 @@ namespace MRK
         /// <summary>
         /// DOMContentLoaded event handler
         /// </summary>
-        private async void OnWebViewDOMContentLoaded(object? sender, CoreWebView2DOMContentLoadedEventArgs e)
+        private async void OnWebViewDOMContentLoaded(
+            object? sender,
+            CoreWebView2DOMContentLoadedEventArgs e
+        )
         {
             await ActionManager.ExecuteActions(WebViewEvent.DOMLoaded);
         }
@@ -150,26 +172,40 @@ namespace MRK
         /// <summary>
         /// SourceChanged event handler
         /// </summary>
-        private async void OnWebViewSourceChanged(object? sender, CoreWebView2SourceChangedEventArgs e)
+        private async void OnWebViewSourceChanged(
+            object? sender,
+            CoreWebView2SourceChangedEventArgs e
+        )
         {
-            // execute all pre-load actions
-            // dont remove actions yet
-            await ActionManager.ExecuteActions(WebViewEvent.SourceChanged,
-                x => !x.WaitForLoad,
-                false);
+            await _sourceChangedGate.WaitAsync();
+            try
+            {
+                // execute all pre-load actions
+                await ActionManager.ExecuteActions(
+                    WebViewEvent.SourceChanged,
+                    x => !x.WaitForLoad,
+                    false
+                );
 
-            // wait for AnghamiBase to load
-            await WaitForAnghamiLoad();
+                // wait for AnghamiBase to load
+                await WaitForAnghamiLoad();
 
-            // execute post-load actions
-            await ActionManager.ExecuteActions(WebViewEvent.SourceChanged,
-                x => x.WaitForLoad);
+                // execute post-load actions
+                await ActionManager.ExecuteActions(WebViewEvent.SourceChanged, x => x.WaitForLoad);
+            }
+            finally
+            {
+                _sourceChangedGate.Release();
+            }
         }
 
         /// <summary>
         /// ContextMenuRequested event handler
         /// </summary>
-        private void OnWebViewContextMenuRequested(object? sender, CoreWebView2ContextMenuRequestedEventArgs e)
+        private void OnWebViewContextMenuRequested(
+            object? sender,
+            CoreWebView2ContextMenuRequestedEventArgs e
+        )
         {
             // disable some context menu items
             for (int i = e.MenuItems.Count - 1; i >= 0; i--)
@@ -177,9 +213,9 @@ namespace MRK
                 var menuItem = e.MenuItems[i];
                 switch (menuItem.CommandId)
                 {
-                    case 33002:     // reload
-                    case 50101:     // openLinkInNewWindow
-                    case 50103:     // saveLinkAs
+                    case 33002: // reload
+                    case 50101: // openLinkInNewWindow
+                    case 50103: // saveLinkAs
                         e.MenuItems.RemoveAt(i);
                         break;
                 }
@@ -205,10 +241,19 @@ namespace MRK
         private void RegisterSourceChangedActions()
         {
             ActionManager.RegisterAction(WebViewEvent.SourceChanged, new CheckLoginAction(WebView));
-            ActionManager.RegisterAction(WebViewEvent.SourceChanged, new RemoveDesktopLinkAction(WebView));
-            ActionManager.RegisterAction(WebViewEvent.SourceChanged, new SetSelectedThemeAction(WebView));
+            ActionManager.RegisterAction(
+                WebViewEvent.SourceChanged,
+                new RemoveDesktopLinkAction(WebView)
+            );
+            ActionManager.RegisterAction(
+                WebViewEvent.SourceChanged,
+                new SetSelectedThemeAction(WebView)
+            );
             ActionManager.RegisterAction(WebViewEvent.SourceChanged, new InjectBetterUI(WebView));
-            ActionManager.RegisterAction(WebViewEvent.SourceChanged, new InitializeDiscordRPC(WebView, _anghamiRPC));
+            ActionManager.RegisterAction(
+                WebViewEvent.SourceChanged,
+                new InitializeDiscordRPC(WebView, _anghamiRPC)
+            );
         }
 
         /// <summary>
@@ -216,8 +261,14 @@ namespace MRK
         /// </summary>
         private void RegisterDOMContentLoadedActions()
         {
-            ActionManager.RegisterAction(WebViewEvent.DOMLoaded, new InjectCustomCSSAction(WebView));
-            ActionManager.RegisterAction(WebViewEvent.DOMLoaded, new SetLoadingScreenAction(WebView));
+            ActionManager.RegisterAction(
+                WebViewEvent.DOMLoaded,
+                new InjectCustomCSSAction(WebView)
+            );
+            ActionManager.RegisterAction(
+                WebViewEvent.DOMLoaded,
+                new SetLoadingScreenAction(WebView)
+            );
         }
 
         /// <summary>
@@ -225,7 +276,8 @@ namespace MRK
         /// </summary>
         public async Task<User> GetLocalUser()
         {
-            var json = await ActionManager.ExecuteActionRaw("""
+            var json = await ActionManager.ExecuteActionRaw(
+                """
                 (function() {
                     var viewProfile = document.getElementsByClassName("viewprofile")[0];
                     var profileUrl = viewProfile.href;
@@ -236,7 +288,8 @@ namespace MRK
 
                     return { Id: id, Name: name };
                 })()
-                """);
+                """
+            );
 
             if (json == "null")
             {
@@ -247,18 +300,26 @@ namespace MRK
         }
 
         /// <summary>
-        /// Immediately applies the provided theme properties to the document body
+        /// Immediately applies the provided theme properties to the document
         /// </summary>
         public async Task ApplyThemeImmediate(List<ThemeProperty> props)
         {
-            var inlineCss = string.Join('\n',
-                props.Select(x => $"{x.Name}: {x.Value};"));
+            var cssVars = string.Join(
+                ' ',
+                props.Select(x =>
+                    $"document.documentElement.style.setProperty('{x.Name}','{x.Value}');"
+                )
+            );
 
-            await ActionManager.ExecuteActionRaw($"""
-                document.body.style.cssText = `{inlineCss}`;
-                """);
+            // set each variable as an inline style on <html> - inline specificity beats any stylesheet,
+            // and individual setProperty calls survive Anghami's JS touching body.style
+            await ActionManager.ExecuteActionRaw(
+                $$"""
+                (function() { {{cssVars}} })();
+                """
+            );
 
-            // update window title bar
+            // update window title bar colour
             var appBg = props.Find(x => x.Name == "--app-background");
             if (appBg != null)
             {
@@ -280,34 +341,35 @@ namespace MRK
                 return null;
             }
 
-            var json = await ActionManager.ExecuteActionRaw("""
+            var json = await ActionManager.ExecuteActionRaw(
+                """
                 (function() {
                     // too lazy to use getxxx
-                    var infoContainer = document.querySelector(".image-info-container");
+                    const infoContainer = document.querySelector(".image-info-container");
 
                     // get image url
-                    var bgImage = infoContainer.querySelector(".track-coverart").style.backgroundImage;
-                    var imgUrlStart = bgImage.indexOf('"') + 1;
-                    var imgUrlEnd = bgImage.lastIndexOf('"');
-                    var imgUrl = bgImage.substring(imgUrlStart, imgUrlEnd);
+                    const bgImage = infoContainer.querySelector(".track-coverart").style.backgroundImage;
+                    const imgUrlStart = bgImage.indexOf('"') + 1;
+                    const imgUrlEnd = bgImage.lastIndexOf('"');
+                    const imgUrl = bgImage.substring(imgUrlStart, imgUrlEnd);
                     
                     // get song name and id
-                    var titleAnchor = infoContainer.querySelector(".action-title");
-                    var name = titleAnchor.innerText;
-                    var id = parseInt(titleAnchor.href.substring(titleAnchor.href.lastIndexOf('/') + 1)) || -1; // local files have no id
+                    const titleAnchor = infoContainer.querySelector(".action-title");
+                    const name = titleAnchor.innerText;
+                    const id = parseInt(titleAnchor.href.substring(titleAnchor.href.lastIndexOf('/') + 1)) || -1; // local files have no id
 
                     // get artist
-                    var artistAnchor = infoContainer.querySelector(".action-artist");
-                    var artist = artistAnchor.innerText;
+                    const artistAnchor = infoContainer.querySelector(".action-artist");
+                    const artist = artistAnchor.innerText;
 
                     // play details
-                    var mainPlayer = document.querySelector(".main-player");
-                    var playPauseCont = mainPlayer.querySelector(".play-pause-cont");
-                    var playState = playPauseCont.children[0].classList[1]; // button name is the second class as of 12/7/2024
+                    const mainPlayer = document.querySelector(".main-player");
+                    const playPauseCont = mainPlayer.querySelector(".play-pause-cont");
+                    const playState = playPauseCont.children[0].classList[1]; // button name is the second class as of 12/7/2024
 
                     // durations
-                    var durations = mainPlayer.querySelectorAll(".duration-text");
-                    var durStart = "--", remainingTime = "--";
+                    const durations = mainPlayer.querySelectorAll(".duration-text");
+                    let durStart = "--", durEnd = "--";
                     if (durations.length == 2) {
                         durStart = durations[0].innerText;
                         durEnd = durations[1].innerText; // remaining time
@@ -323,7 +385,8 @@ namespace MRK
                         durEnd
                     };
                 })()
-                """);
+                """
+            );
 
             // dont attempt to convert if un-necessary
             if (json == "null")

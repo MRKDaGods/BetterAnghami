@@ -32,13 +32,13 @@ namespace MRK.Models
             Length = length;
             Value = value;
             Type = type;
-            
+
             _color = null;
         }
 
         private Color ResolveColor()
         {
-            if (Type == ThemeColorType.None || string.IsNullOrWhiteSpace(Value)) 
+            if (Type == ThemeColorType.None || string.IsNullOrWhiteSpace(Value))
             {
                 return Colors.Transparent;
             }

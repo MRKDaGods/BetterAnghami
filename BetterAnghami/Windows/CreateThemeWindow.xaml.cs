@@ -1,5 +1,4 @@
 ﻿using MRK.Models;
-using System;
 using System.Windows;
 
 namespace MRK
@@ -52,6 +51,14 @@ namespace MRK
                 // set error text
                 SetError("Cannot get local user, are you logged in?");
             }
+
+            // populate base theme picker with all installed themes
+            var themes = ThemeManager.Instance.InstalledThemes;
+            baseThemeComboBox.ItemsSource = themes;
+
+            // default to whichever theme is currently active
+            var selected = ThemeManager.Instance.SelectedTheme;
+            baseThemeComboBox.SelectedItem = selected ?? themes.FirstOrDefault();
         }
 
         /// <summary>
@@ -112,7 +119,8 @@ namespace MRK
                     themeDescTextBox.Text.Trim(),
                     version.ToString());
 
-            var error = await ThemeManager.Instance.CreateTheme(metadata);
+            var baseTheme = baseThemeComboBox.SelectedItem as ThemeMetadata;
+            var error = await ThemeManager.Instance.CreateTheme(metadata, baseTheme);
             if (error != BetterAnghamiError.None)
             {
                 // display error
