@@ -1,79 +1,77 @@
 # BetterAnghami
 
-BetterAnghami is an enhanced version of the <a href="https://www.anghami.com/">Anghami</a> music streaming service, offering additional features and improved user experience.
+BetterAnghami is an enhanced version of the [Anghami](https://www.anghami.com/) music streaming service, offering additional features and an improved user experience.
 
 ## Disclaimer
 
-BetterAnghami is an independent project developed by me. It is not affiliated with or endorsed by Anghami.
+BetterAnghami is an independent project and is not affiliated with or endorsed by Anghami.
 
 ## Features
 
 - **Fast Start-Up Times:** Quickly access your music without delays.
-- **Smooth Experience:** Enjoy a seamless browsing experience powered by WebView2.
-- **Custom Theming:** Personalize the app's appearance to your liking.
+- **Smooth Experience:** Seamless browsing experience powered by WebView2.
+- **Custom Theming:** Personalize the app's appearance with a built-in theme editor.
 - **Discord Rich Presence:** Show your current listening activity on Discord.
-  
+
 ## Interface
 
 ### Album View with a Custom Theme Applied
-Seemless visual experience that adapt beautifully to your chosen theme <br />
-<img src="https://github.com/user-attachments/assets/d7884b3c-fa4c-4c0d-a9a7-b04bdc374b70" width="900" />
+
+Seamless visual experience that adapts beautifully to your chosen theme.
+
+<img src="https://github.com/user-attachments/assets/bdc942fe-33a1-4654-962e-175fdff6d659" width="900" />
 
 ### Theme Editor
-Easily customize themes to match your style using the built-in theme editor <br/>
-<img src="https://github.com/user-attachments/assets/e2bfe0cf-6e18-4b80-8489-379a9d410332" width="900" />
 
+Easily customize themes to match your style using the built-in theme editor.
+
+<img src="https://github.com/user-attachments/assets/ea09fb12-e609-472f-8247-3a3abb4a86d7" width="900" />
 
 ### Accessing Themes
-Themes can be accessed using the dropdown menu on the top right <br/>
-<img src="https://github.com/MRKDaGods/BetterAnghami/assets/25166537/ce444ab3-03fd-467f-a921-ad6503ab2106" height="350" />
+
+Themes can be accessed using the dropdown menu on the top right.
+
+<img src="https://github.com/user-attachments/assets/1fcd3466-9f45-4094-8788-fb84eac0b6c1" height="350" />
 
 ### Discord Rich Presence
-Showcase your music activity to friends on Discord with rich presence integration (with time left, paused, loading, etc)<br /> <br />
-#### v0.2.0
-<img src="https://github.com/MRKDaGods/BetterAnghami/assets/25166537/453f450a-a21a-4014-b964-0662654dc551" width="350" />
 
-#### v0.2.3
-![image](https://github.com/user-attachments/assets/c489ac62-c457-47bf-bcc8-401f09620b5a)
-![image](https://github.com/user-attachments/assets/37f54859-69c9-4f7e-a75b-6aee9a04bfce)
+Showcase your music activity to friends on Discord with rich presence integration (time remaining, paused state, loading, etc).
 
-
+<img src="https://github.com/user-attachments/assets/a6299596-140f-4648-8d50-1a60952091e4" width="500" />
 
 ## Building BetterAnghami
 
-Since BetterAnghami is based on Windows Presentation Framework (WPF), it may only be compiled and ran on Windows. <br />
-
-To build **BetterAnghami on Windows**, follow these steps:
+BetterAnghami is a WPF application and can only be built and run on Windows.
 
 ### Prerequisites
 
-- Install [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
-- Install [Visual Studio](https://visualstudio.microsoft.com/) with the .NET desktop development workload.
+- [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
 
 ### Clone the Repository
-
-Clone the BetterAnghami repository to your local machine:
 
 ```bash
 git clone https://github.com/MRKDaGods/BetterAnghami.git
 cd BetterAnghami
 ```
 
-### Open in Visual Studio
-Open the project in Visual Studio:
-- Navigate to the cloned `BetterAnghami` directory
-- Double-click on the `BetterAnghami.sln` file to open it in Visual Studio.
+### Build and Run
 
+**Using the .NET CLI:**
 
-*Visual Studio will automatically handle restoring dependencies and compiling the project when you run it.*
+```bash
+dotnet build BetterAnghami/BetterAnghami.csproj -c Release
+dotnet run --project BetterAnghami/BetterAnghami.csproj
+```
 
-### Run the Project
-Once the project is opened in Visual Studio:
-- Ensure `BetterAnghami` is set as the startup project.
-- Press `F5` or go to `Debug > Start Debugging` to build and run the project.
+**Using Visual Studio:**
+
+1. Install [Visual Studio](https://visualstudio.microsoft.com/) with the **.NET desktop development** workload.
+2. Open `BetterAnghami.sln`.
+3. Set `BetterAnghami` as the startup project.
+4. Press `F5` to build and run.
 
 ## Precompiled Binaries
 
-If you prefer not to build BetterAnghami from the source code, you can download precompiled binaries for your platform:
+Download the latest precompiled release for Windows:
 
-- **Windows:** [Download BetterAnghami for Windows](https://github.com/MRKDaGods/BetterAnghami/releases/latest)
+- [Download BetterAnghami for Windows](https://github.com/MRKDaGods/BetterAnghami/releases/latest)

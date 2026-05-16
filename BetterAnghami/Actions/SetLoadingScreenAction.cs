@@ -1,5 +1,4 @@
 ﻿using Microsoft.Web.WebView2.Core;
-using System.Threading.Tasks;
 
 namespace MRK.Actions
 {
@@ -10,60 +9,72 @@ namespace MRK.Actions
         public override async Task Execute()
         {
             // check if preloader wrapper is present
-            var preloaderExists = await WebView.ExecuteScriptAsync("""
+            var preloaderExists = await WebView.ExecuteScriptAsync(
+                """
                 var mrk_preloader = document.getElementById("app-preloader-wrapper");
                 mrk_preloader != null; // return this
-                """);
+                """
+            );
 
             if (preloaderExists != "true")
             {
-                //Utils.ShowDialog(
-                //    windowTitle: "Error",
-                //    mainInstruction: "Cannot locate preloader",
-                //    content: "This is probably due to bad internet connection, please restart BetterAnghami",
-                //    buttons: [ButtonType.Ok]);
-
+                // no preloader, drop the cover
+                await WebView.ExecuteScriptAsync(
+                    "var s=document.getElementById('mrk-cover-style');if(s)s.remove();"
+                );
                 return;
             }
 
-            // start preloader animation
-            await WebView.ExecuteScriptAsync("""
-                mrk_preloader.outerHTML = `
-                        <div id="mrk-app-preloader-wrapper">             
-                             <!-- Anghami logo -->
-                             <img src="https://cdnweb.anghami.com/web/assets/img/logos/New_Logo_Dark@2x.png" alt="preloader-logo" width="110">
-
-                             <!-- Better anghami -->
-                             <span>BETTER</span>
-                        </div>
+            // mutate in-place to avoid a one-frame DOM gap, then drop the cover
+            await WebView.ExecuteScriptAsync(
+                $$"""
+                mrk_preloader.id = 'mrk-app-preloader-wrapper';
+                mrk_preloader.innerHTML = `
+                    <div class="mrk-brand">
+                        <img src="https://cdnweb.anghami.com/web/assets/img/logos/New_Logo_Dark@2x.png" alt="anghami" width="96">
+                        <span class="mrk-better-text">BETTER</span>
+                    </div>
+                    <div class="mrk-dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <span class="mrk-version">v{{AppUtils.AppVersion}}</span>
                 `;
-                
-                mrk_preloader = document.getElementById("mrk-app-preloader-wrapper");
-                """);
+                var s = document.getElementById('mrk-cover-style');
+                if (s) s.remove();
+                """
+            );
 
             // wait for a bit
             // anghami loading is laggy
             await Task.Delay(1500);
 
             // show BETTER label
-            await WebView.ExecuteScriptAsync("""
-                mrk_preloader.children[1].style.setProperty("width", "290px");
-                mrk_preloader.children[1].style.setProperty("margin-left", "48px");
-                """);
+            await WebView.ExecuteScriptAsync(
+                """
+                var betterText = mrk_preloader.querySelector('.mrk-better-text');
+                betterText.style.setProperty('width', '265px');
+                betterText.style.setProperty('margin-left', '26px');
+                betterText.style.setProperty('opacity', '1');
+                """
+            );
 
             await Task.Delay(1500);
 
             // fade out loading
-            await WebView.ExecuteScriptAsync("""
+            await WebView.ExecuteScriptAsync(
+                """
                 mrk_preloader.style.setProperty("opacity", "0");
-                """);
+                """
+            );
 
             await Task.Delay(1000);
 
             // remove preloader
-            await WebView.ExecuteScriptAsync("""
+            await WebView.ExecuteScriptAsync(
+                """
                 mrk_preloader.remove();
-                """);
+                """
+            );
         }
 
         public override bool ShouldConsume()

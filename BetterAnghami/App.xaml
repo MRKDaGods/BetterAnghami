@@ -1,14 +1,16 @@
-﻿<Application x:Class="MRK.App"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             StartupUri="Windows/AnghamiWindow.xaml">
-    <Application.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="WPFThemes/Dark.xaml"/>
-                <ResourceDictionary Source="WPFThemes/ControlColours.xaml"/>
-                <ResourceDictionary Source="WPFThemes/Controls.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </Application.Resources>
+﻿<Application
+  x:Class="MRK.App"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  StartupUri="Windows/AnghamiWindow.xaml"
+>
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="UI/Controls/Dark.xaml" />
+        <ResourceDictionary Source="UI/Controls/ControlColours.xaml" />
+        <ResourceDictionary Source="UI/Controls/Controls.xaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
 </Application>

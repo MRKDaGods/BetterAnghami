@@ -4,8 +4,11 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Create New Theme" 
-        Height="380" Width="600"
+        Title="Create New Theme"
+        SizeToContent="Height"
+        MinHeight="300"
+        Width="560"
+        ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen"
         Style="{DynamicResource CustomWindowStyle}"
         Loaded="OnWindowLoaded">
@@ -40,6 +43,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
@@ -68,8 +72,18 @@
             <Label Grid.Row="4" Grid.Column="0" Content="Theme Version" />
             <TextBox x:Name="themeVersionTextBox" Grid.Row="4" Grid.Column="1" Text="1.0" />
 
+            <!-- Base theme -->
+            <Label Grid.Row="5" Grid.Column="0" Content="Base Theme" />
+            <ComboBox x:Name="baseThemeComboBox"
+                      Grid.Row="5" Grid.Column="1"
+                      Margin="10, 5"
+                      Height="30"
+                      DisplayMemberPath="Name"
+                      SelectedValuePath="."
+                      VerticalContentAlignment="Center" />
+
             <!-- Footer elements -->
-            <Grid Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Margin="10">
+            <Grid Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Margin="10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />

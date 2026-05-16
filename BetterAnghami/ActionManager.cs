@@ -1,8 +1,4 @@
 ﻿using MRK.Actions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace MRK
 {
@@ -12,7 +8,7 @@ namespace MRK
         DOMLoaded,
         SourceChanged,
 
-        MAX
+        MAX,
     }
 
     /// <summary>
@@ -91,7 +87,11 @@ namespace MRK
         /// <param name="webViewEvent">The WebView event for the actions</param>
         /// <param name="filter">An optional actions filter</param>
         /// <param name="removeActions">Remove actions in the removal buffer?</param>
-        public async Task ExecuteActions(WebViewEvent webViewEvent, Func<AsyncConsumableAction, bool>? filter = null, bool removeActions = true)
+        public async Task ExecuteActions(
+            WebViewEvent webViewEvent,
+            Func<AsyncConsumableAction, bool>? filter = null,
+            bool removeActions = true
+        )
         {
             if (!IsWebViewEventValid(webViewEvent))
             {
@@ -104,9 +104,7 @@ namespace MRK
             var actions = store.Actions;
             if (filter != null)
             {
-                actions = actions
-                    .Where(filter)
-                    .ToList();
+                actions = actions.Where(filter).ToList();
             }
 
             // sort ascendingly by execution delay
@@ -116,7 +114,9 @@ namespace MRK
             foreach (var action in actions)
             {
                 // wait for delay (delay from time of event start)
-                int delay = action.ExecutionDelay - (int)(DateTime.Now - executeStartTime).TotalMilliseconds;
+                int delay =
+                    action.ExecutionDelay
+                    - (int)(DateTime.Now - executeStartTime).TotalMilliseconds;
                 if (delay > 0)
                 {
                     await Task.Delay(delay);
@@ -134,12 +134,8 @@ namespace MRK
 
             if (removeActions)
             {
-                // remove actions in removal buffer
-                foreach (var action in store.RemovalBuffer)
-                {
-                    store.Actions.Remove(action);
-                }
-
+                // remove consumed actions
+                store.Actions.RemoveAll(store.RemovalBuffer.Contains);
                 store.RemovalBuffer.Clear();
             }
         }

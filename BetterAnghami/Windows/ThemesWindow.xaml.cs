@@ -1,16 +1,10 @@
-﻿using ColorPicker;
-using MRK.Models;
-using Ookii.Dialogs.Wpf;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using MRK.Models;
+using Ookii.Dialogs.Wpf;
 
 namespace MRK
 {
@@ -27,16 +21,19 @@ namespace MRK
 
         public static Color NormalContainerColor = "#FF151515".ToColor();
         public static Color ActiveContainerColor = "#FF212121".ToColor();
+        public static Color ViewingContainerColor = "#FF2A2A2A".ToColor();
 
         public static Brush NormalContainerBrush = new SolidColorBrush(NormalContainerColor);
         public static Brush ActiveContainerBrush = new SolidColorBrush(ActiveContainerColor);
+        public static Brush ViewingContainerBrush = new SolidColorBrush(ViewingContainerColor);
 
         private ThemeMetadata? _selectedTheme;
         private List<ThemeProperty>? _currentThemeProperties;
-        private CancellationTokenSource? _searchCancellationTokenSource;
+        private string _searchQuery = string.Empty;
 
         private readonly Dictionary<ThemeProperty, TextBox> _propertyTextboxes;
         private readonly Dictionary<ThemeProperty, List<ThemeColor>> _propertyColors;
+        private readonly Dictionary<ThemeProperty, ItemsControl> _propertyColorControls;
         private ColorPropertyEdit? _currentColorEdit;
 
         private ThemeMetadata? _lastSelectedLabelOwner;
@@ -60,9 +57,11 @@ namespace MRK
                 {
                     _isThemeDirty = value;
 
-                    // enable save
-                    // disable apply button
+                    // enable save / disable apply
                     SetToolbarButtonsState(enableSaveChanges: value, enableApplyTheme: !value);
+
+                    // reflect on info bar
+                    editorDirtyBadge.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
                 }
             }
         }
@@ -76,6 +75,7 @@ namespace MRK
 
 #nullable disable
         public static ThemesWindow Instance { get; private set; }
+
 #nullable enable
 
         public ThemesWindow()
@@ -84,8 +84,18 @@ namespace MRK
 
             _propertyTextboxes = [];
             _propertyColors = [];
+            _propertyColorControls = [];
 
             InitializeComponent();
+        }
+
+        /// <summary>
+        /// Scrolls the theme properties list to the top
+        /// </summary>
+        private void ScrollPropertiesToTop()
+        {
+            var sv = themePropertiesControl.GetChildOfType<ScrollViewer>();
+            sv?.ScrollToTop();
         }
 
         /// <summary>
@@ -94,13 +104,21 @@ namespace MRK
         private async void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
             // attach editor properties itemcontrol status changed handler
-            themePropertiesControl.ItemContainerGenerator.StatusChanged += OnPropertiesItemControlStatusChanged;
+            themePropertiesControl.ItemContainerGenerator.StatusChanged +=
+                OnPropertiesItemControlStatusChanged;
 
             // attach themes changed handler
             ThemeManager.ThemesChanged += OnInstalledThemesChanged;
 
-            // load themes
-            await ThemeManager.LoadInstalledThemes();
+            // themes are already loaded at app startup; skip the re-read and just populate the UI
+            if (ThemeManager.InstalledThemes.Count > 0)
+            {
+                OnInstalledThemesChanged();
+            }
+            else
+            {
+                await ThemeManager.LoadInstalledThemes();
+            }
         }
 
         private void OnWindowClosed(object sender, EventArgs e)
@@ -112,7 +130,7 @@ namespace MRK
         /// <summary>
         /// Installed themes changed event handler
         /// </summary>
-        private void OnInstalledThemesChanged()
+        private async void OnInstalledThemesChanged()
         {
             // invalidate item source
             themesControl.ItemsSource = null;
@@ -127,24 +145,19 @@ namespace MRK
             // hide loading label
             loadingLabel.Visibility = Visibility.Collapsed;
 
-            // set selected theme
-            // select after a bit
-            Utils.DispatchLater(this,
-                async () =>
-                {
-                    var themeToSelect = _selectedTheme;
+            // small yield so the ListView has rendered before we touch containers
+            await Task.Delay(100);
 
-                    if (themeToSelect == null || !ThemeManager.InstalledThemes.Contains(themeToSelect))
-                    {
-                        themeToSelect = ThemeManager.InstalledThemes.FirstOrDefault();
-                    }
+            var themeToSelect = _selectedTheme;
+            if (themeToSelect == null || !ThemeManager.InstalledThemes.Contains(themeToSelect))
+            {
+                themeToSelect = ThemeManager.InstalledThemes.FirstOrDefault();
+            }
 
-                    await SetSelectedTheme(themeToSelect);
+            await SetSelectedTheme(themeToSelect);
 
-                    // update selected theme
-                    UpdateSelectedLabel();
-                },
-                100);
+            // update selected theme
+            UpdateSelectedLabel();
         }
 
         /// <summary>
@@ -165,35 +178,45 @@ namespace MRK
         }
 
         /// <summary>
-        /// Returns the UI container of the provided metadata
+        /// Returns the UI container of the provided metadata.
+        /// <para>Works with both <see cref="ListView"/> (returns <see cref="ListViewItem"/>) and
+        /// plain <see cref="ItemsControl"/> (returns <see cref="ContentPresenter"/>).</para>
         /// </summary>
-        private T? GetThemeContainer<T>(ThemeMetadata themeMetadata, int depth = 1) where T : UIElement
+        private T? GetThemeContainer<T>(ThemeMetadata themeMetadata, int depth = 1)
+            where T : DependencyObject
         {
-            var contentPresenter = themesControl.ItemContainerGenerator.ContainerFromItem(themeMetadata) as ContentPresenter;
-            if (contentPresenter != null && VisualTreeHelper.GetChildrenCount(contentPresenter) > 0)
-            {
-                UIElement? current = contentPresenter;
-                while (depth-- > 0 && current != null)
-                {
-                    current = VisualTreeHelper.GetChild(current, 0) as UIElement;
-                }
+            var container = themesControl.ItemContainerGenerator.ContainerFromItem(themeMetadata);
+            if (container == null)
+                return null;
 
-                return current as T;
-            }
+            DependencyObject? current = container;
+            while (depth-- > 0 && current != null)
+                current =
+                    VisualTreeHelper.GetChildrenCount(current) > 0
+                        ? VisualTreeHelper.GetChild(current, 0)
+                        : null;
 
-            return null;
+            return current as T;
         }
 
         /// <summary>
-        /// Sets the provided theme's container background brush
+        /// Sets the provided theme's container background and optional left-border accent
         /// </summary>
-        private void SetThemeContainerBrush(ThemeMetadata metadata, Brush brush)
+        private void SetThemeContainerBrush(
+            ThemeMetadata metadata,
+            Brush brush,
+            bool viewing = false
+        )
         {
             var container = GetThemeContainer<Border>(metadata, 2);
-            if (container != null)
-            {
-                container.Background = brush;
-            }
+            if (container == null)
+                return;
+
+            container.Background = brush;
+            container.BorderThickness = viewing ? new Thickness(3, 0, 0, 0) : new Thickness(0);
+            container.BorderBrush = viewing
+                ? new SolidColorBrush(Color.FromRgb(0x5B, 0x9B, 0xD5))
+                : Brushes.Transparent;
         }
 
         /// <summary>
@@ -201,19 +224,26 @@ namespace MRK
         /// </summary>
         /// <param name="selectedTheme">Theme metadata to load</param>
         /// <param name="properties">If not provided, the theme properties are loaded from ThemeManager</param>
-        private async Task SetSelectedTheme(ThemeMetadata? selectedTheme, List<ThemeProperty>? properties = null)
+        private async Task SetSelectedTheme(
+            ThemeMetadata? selectedTheme,
+            List<ThemeProperty>? properties = null
+        )
         {
             if (_selectedTheme != null && _selectedTheme != selectedTheme)
             {
                 // check for dirty
                 if (IsThemeDirty)
                 {
-                    switch (Utils.ShowDialog(
-                            windowTitle: Title,
-                            mainInstruction: "You have unsaved changes, save them?",
-                            content: "Any unsaved changes will be lost",
-                            buttons: [ButtonType.Yes, ButtonType.No, ButtonType.Cancel]
-                        ).ButtonType)
+                    switch (
+                        AppUtils
+                            .ShowDialog(
+                                windowTitle: Title,
+                                mainInstruction: "You have unsaved changes, save them?",
+                                content: "Any unsaved changes will be lost",
+                                buttons: [ButtonType.Yes, ButtonType.No, ButtonType.Cancel]
+                            )
+                            .ButtonType
+                    )
                     {
                         // save
                         case ButtonType.Yes:
@@ -233,18 +263,21 @@ namespace MRK
             // set ours as active
             if (selectedTheme != null)
             {
-                SetThemeContainerBrush(selectedTheme, ActiveContainerBrush);
+                SetThemeContainerBrush(selectedTheme, ViewingContainerBrush, viewing: true);
 
                 // load up theme data
                 _currentThemeProperties = properties ?? await ThemeManager.LoadTheme(selectedTheme);
 
                 // set properties control itemsource
-                Utils.DispatchLater(this,
-                    () =>
-                    {
-                        themePropertiesControl.ItemsSource = _currentThemeProperties;
-                        editorScrollView.ScrollToTop();
-                    }, 100);
+                await Task.Delay(100);
+                themePropertiesControl.ItemsSource = _currentThemeProperties;
+
+                // attach filter to the CollectionView so search works without replacing ItemsSource
+                var view = System.Windows.Data.CollectionViewSource.GetDefaultView(
+                    themePropertiesControl.ItemsSource
+                );
+                view.Filter = PropertiesFilter;
+                ScrollPropertiesToTop();
 
                 // set loading
                 SetThemePropertiesLoadingState(true);
@@ -259,7 +292,8 @@ namespace MRK
                     enableDelete: false,
                     enableEditCss: false,
                     enableSaveChanges: false,
-                    enableApplyTheme: false);
+                    enableApplyTheme: false
+                );
 
                 // clear theme props
                 _currentThemeProperties = null;
@@ -273,12 +307,16 @@ namespace MRK
             // clear cache
             _propertyTextboxes.Clear();
             _propertyColors.Clear();
+            _propertyColorControls.Clear();
 
             // remove color edit
             _currentColorEdit = null;
 
             // hide color picker
             SetColorPickerState(false);
+
+            // refresh info bar
+            UpdateThemeInfoBar();
         }
 
         /// <summary>
@@ -286,27 +324,22 @@ namespace MRK
         /// </summary>
         private void InstantiateTextboxColorControls(TextBox textbox)
         {
-            // get our colors container
-            var parent = VisualTreeHelper.GetParent(textbox);
-            var colorContainerControl = (ItemsControl)VisualTreeHelper.GetChild(parent, 0);
-
-            // extract colors
-            var colors = ColorUtility.MatchColors(textbox.Text);
-
-            // sort by which comes first
-            colors.Sort((x, y) => x.Start.CompareTo(y.Start));
-            colorContainerControl.ForceSetItemSource(colors);
-
             var prop = (ThemeProperty)textbox.Tag;
+
+            // extract and sort colors
+            var colors = ColorUtility.MatchColors(textbox.Text);
+            colors.Sort((x, y) => x.Start.CompareTo(y.Start));
+
+            // store owner on each color
+            foreach (var color in colors)
+                color.Owner = prop;
 
             // store colors
             _propertyColors[prop] = colors;
 
-            // store owner
-            foreach (var color in colors)
-            {
-                color.Owner = prop;
-            }
+            // update chips control via dictionary (avoids fragile VisualTree walk)
+            if (_propertyColorControls.TryGetValue(prop, out var colorContainerControl))
+                colorContainerControl.ForceSetItemSource(colors);
         }
 
         /// <summary>
@@ -368,6 +401,16 @@ namespace MRK
         }
 
         /// <summary>
+        /// Color chips ItemsControl loaded handler; registers the control so InstantiateTextboxColorControls can find it
+        /// </summary>
+        private void OnColorChipsLoaded(object sender, RoutedEventArgs e)
+        {
+            var ic = (ItemsControl)sender;
+            if (ic.Tag is ThemeProperty prop)
+                _propertyColorControls[prop] = ic;
+        }
+
+        /// <summary>
         /// Theme property value textbox loaded handler
         /// </summary>
         private void OnValueTextboxLoaded(object sender, RoutedEventArgs e)
@@ -417,7 +460,9 @@ namespace MRK
         /// </summary>
         private void SetThemePropertiesLoadingState(bool loading)
         {
-            themePropertiesLoadingLabel.Visibility = loading ? Visibility.Visible : Visibility.Collapsed;
+            themePropertiesLoadingLabel.Visibility = loading
+                ? Visibility.Visible
+                : Visibility.Collapsed;
 
             // override cursor
             Mouse.OverrideCursor = loading ? Cursors.Wait : null;
@@ -428,38 +473,46 @@ namespace MRK
         /// </summary>
         private void OnPropertiesItemControlStatusChanged(object? sender, EventArgs e)
         {
-            if (themePropertiesControl.ItemContainerGenerator.Status == GeneratorStatus.ContainersGenerated)
+            if (
+                themePropertiesControl.ItemContainerGenerator.Status
+                == GeneratorStatus.ContainersGenerated
+            )
             {
                 SetThemePropertiesLoadingState(false);
             }
         }
 
         /// <summary>
-        /// Filters <see cref="_currentThemeProperties"/> with a fuzzy search using <paramref name="query"/>
+        /// CollectionView filter predicate applied to the properties ListView
         /// </summary>
-        private async Task FilterProperties(string query, CancellationToken token)
+        private bool PropertiesFilter(object item)
         {
-            await Task.Delay(1000, token);
+            if (_searchQuery.Length == 0)
+                return true;
 
-            if (token.IsCancellationRequested)
+            if (item is not ThemeProperty prop)
+                return false;
+
+            // match raw CSS name (e.g. --mrk-color-primary-a0)
+            if (prop.Name.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            // match friendly display name (e.g. "Color Primary A0")
+            // strip leading --vendor- prefix, replace hyphens with spaces
+            var friendly = prop.Name.AsSpan();
+            var dashDash = friendly.IndexOf("--");
+            if (dashDash >= 0)
             {
-                return;
+                friendly = friendly[(dashDash + 2)..];
+                var nextDash = friendly.IndexOf('-');
+                if (nextDash >= 0)
+                    friendly = friendly[(nextDash + 1)..];
             }
 
-            if (string.IsNullOrEmpty(query))
-            {
-                Dispatcher.Invoke(() => themePropertiesControl.ItemsSource = _currentThemeProperties);
-            }
-            else
-            {
-                var result = FuzzySharp.Process.ExtractSorted(
-                    new ThemeProperty(query, ""),
-                    _currentThemeProperties, (x) => x.Name);
-
-                Dispatcher.Invoke(() => themePropertiesControl.ItemsSource = result
-                    .Select(x => x.Value)
-                    .ToList());
-            }
+            return friendly
+                .ToString()
+                .Replace('-', ' ')
+                .Contains(_searchQuery, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -467,17 +520,15 @@ namespace MRK
         /// </summary>
         private void OnSearchBoxTextChanged(object sender, TextChangedEventArgs e)
         {
-            if (_currentThemeProperties == null) return;
+            if (_currentThemeProperties == null)
+                return;
 
-            // cancel old search
-            _searchCancellationTokenSource?.Cancel();
+            _searchQuery = searchTextBox.Text.Trim();
 
-            // store query
-            var query = searchTextBox.Text.Trim();
-
-            _searchCancellationTokenSource = new CancellationTokenSource();
-            Task.Run(() => FilterProperties(query, _searchCancellationTokenSource.Token),
-                _searchCancellationTokenSource.Token);
+            var view = System.Windows.Data.CollectionViewSource.GetDefaultView(
+                themePropertiesControl.ItemsSource
+            );
+            view?.Refresh();
         }
 
         /// <summary>
@@ -492,11 +543,16 @@ namespace MRK
             }
 
             // display confirmation
-            if (Utils.ShowDialog(
-                    windowTitle: Title,
-                    mainInstruction: $"Are you sure you want to delete {_selectedTheme.Name}?",
-                    content: "This cannot be undone",
-                    buttons: [ButtonType.Yes, ButtonType.Cancel]).ButtonType == ButtonType.Yes)
+            if (
+                AppUtils
+                    .ShowDialog(
+                        windowTitle: Title,
+                        mainInstruction: $"Are you sure you want to delete {_selectedTheme.Name}?",
+                        content: "This cannot be undone",
+                        buttons: [ButtonType.Yes, ButtonType.Cancel]
+                    )
+                    .ButtonType == ButtonType.Yes
+            )
             {
                 // set to false, to prevent the unsaved changes prompt from showing
                 IsThemeDirty = false;
@@ -541,14 +597,19 @@ namespace MRK
             }
 
             // write new properties
-            var error = await ThemeManager.InstallTheme(_selectedTheme, _currentThemeProperties, true);
+            var error = await ThemeManager.InstallTheme(
+                _selectedTheme,
+                _currentThemeProperties,
+                true
+            );
             if (error != BetterAnghamiError.None)
             {
-                Utils.ShowDialog(
+                AppUtils.ShowDialog(
                     windowTitle: Title,
                     mainInstruction: "An error has occurred",
                     content: error.ToString(),
-                    buttons: [ButtonType.Ok]);
+                    buttons: [ButtonType.Ok]
+                );
 
                 // keep the dirty flag for now
                 return;
@@ -585,7 +646,8 @@ namespace MRK
             bool? enableDelete = null,
             bool? enableEditCss = null,
             bool? enableSaveChanges = null,
-            bool? enableApplyTheme = null)
+            bool? enableApplyTheme = null
+        )
         {
             if (enableDelete.HasValue)
             {
@@ -606,6 +668,31 @@ namespace MRK
             {
                 applyThemeButton.IsEnabled = enableApplyTheme.Value;
             }
+        }
+
+        /// <summary>
+        /// Updates the editor info strip (name, Active/Read-Only badges, property count)
+        /// </summary>
+        private void UpdateThemeInfoBar()
+        {
+            if (_selectedTheme == null)
+            {
+                editorThemeNameText.Text = "No theme selected";
+                editorReadOnlyBadge.Visibility = Visibility.Collapsed;
+                editorDirtyBadge.Visibility = Visibility.Collapsed;
+                editorPropertyCountText.Text = string.Empty;
+                return;
+            }
+
+            editorThemeNameText.Text = _selectedTheme.Name;
+
+            editorReadOnlyBadge.Visibility = _selectedTheme.IsBuiltIn
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            editorDirtyBadge.Visibility = IsThemeDirty ? Visibility.Visible : Visibility.Collapsed;
+
+            var count = _currentThemeProperties?.Count ?? 0;
+            editorPropertyCountText.Text = count > 0 ? $"{count} properties" : string.Empty;
         }
 
         /// <summary>
@@ -663,11 +750,13 @@ namespace MRK
             // update our color and fix other colors' start index
 
             var selectedColor = colorPicker.SelectedColor;
-            var newValue = string.Format("#{0:X2}{1:X2}{2:X2}{3:X2}",
+            var newValue = string.Format(
+                "#{0:X2}{1:X2}{2:X2}{3:X2}",
                 selectedColor.R,
                 selectedColor.G,
                 selectedColor.B,
-                selectedColor.A);
+                selectedColor.A
+            );
 
             // calculate fixup delta for theme colors ahead
             int oldLength = _currentColorEdit.Color.Length;
@@ -675,11 +764,11 @@ namespace MRK
 
             // change color into hex
             _currentColorEdit.Color.InternalConstruct(
-                    _currentColorEdit.Color.Start,
-                    newValue.Length,
-                    newValue,
-                    ThemeColorType.Hex
-                );
+                _currentColorEdit.Color.Start,
+                newValue.Length,
+                newValue,
+                ThemeColorType.Hex
+            );
 
             // which colors come next?
             var colors = _propertyColors[_currentColorEdit.Property];
@@ -708,9 +797,10 @@ namespace MRK
             // update text
             RunWithNoEvents(() =>
             {
-                textbox.Text = textbox.Text.Substring(0, _currentColorEdit.Color.Start) +
-                newValue +
-                textbox.Text.Substring(_currentColorEdit.Color.Start + oldLength);
+                textbox.Text =
+                    textbox.Text.Substring(0, _currentColorEdit.Color.Start)
+                    + newValue
+                    + textbox.Text.Substring(_currentColorEdit.Color.Start + oldLength);
 
                 // update property value
                 _currentColorEdit.Property.Value = textbox.Text;
@@ -719,10 +809,14 @@ namespace MRK
             // property changed, dirty!
             IsThemeDirty = true;
 
-            // update source
-            var parent = VisualTreeHelper.GetParent(textbox);
-            var colorContainerControl = (ItemsControl)VisualTreeHelper.GetChild(parent, 0);
-            colorContainerControl.ForceSetItemSource(colors);
+            // update chips via dictionary
+            if (
+                _propertyColorControls.TryGetValue(
+                    _currentColorEdit.Property,
+                    out var colorContainerControl
+                )
+            )
+                colorContainerControl.ForceSetItemSource(colors);
         }
 
         /// <summary>
@@ -739,23 +833,17 @@ namespace MRK
         }
 
         /// <summary>
-        /// Controls a ThemeMetadata's selected label visiblity
+        /// Controls the 'Applied' label visibility on a theme card
         /// </summary>
         private void SetSelectedLabelVisible(ThemeMetadata owner, bool visible)
         {
-            var container = GetThemeContainer<Border>(owner, 2);
-            if (container != null)
-            {
-                var label = container.FindName("selectedTextBlock") as TextBlock;
-                if (label != null)
-                {
-                    label.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
-                }
-            }
+            var cardBorder = GetThemeContainer<Border>(owner, 2);
+            if (cardBorder?.FindName("selectedTextBlock") is TextBlock label)
+                label.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
         }
 
         /// <summary>
-        /// Updates the selected label visiblity
+        /// Updates the selected label visibility
         /// </summary>
         private void UpdateSelectedLabel()
         {
@@ -777,6 +865,9 @@ namespace MRK
             }
 
             _lastSelectedLabelOwner = selectedTheme;
+
+            // refresh info bar Active badge
+            UpdateThemeInfoBar();
         }
     }
 }

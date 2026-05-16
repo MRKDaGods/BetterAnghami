@@ -1,8 +1,5 @@
 ﻿using MRK.Models;
 using Ookii.Dialogs.Wpf;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Windows;
 
@@ -57,6 +54,7 @@ namespace MRK
             if (props == null)
             {
                 contentTextbox.Text = "Cannot read theme properties.";
+                UpdateStatusBar();
                 return;
             }
 
@@ -71,6 +69,31 @@ namespace MRK
             sb.AppendLine("}");
 
             contentTextbox.Text = sb.ToString();
+            UpdateStatusBar();
+        }
+
+        /// <summary>
+        /// Handles content changes and updates the status bar
+        /// </summary>
+        private void OnContentTextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            UpdateStatusBar();
+        }
+
+        /// <summary>
+        /// Refreshes the status bar with line/char counts
+        /// </summary>
+        private void UpdateStatusBar()
+        {
+            var text = contentTextbox.Text ?? string.Empty;
+            var lineCount = text.Length == 0 ? 0 : text.ReplaceLineEndings("\n").Count(c => c == '\n') + 1;
+            var charCount = text.Length;
+
+            statusBarLeft.Text = Theme.IsBuiltIn
+                ? "Read-only: this theme cannot be edited"
+                : "CSS: one variable per line inside :root { }";
+
+            statusBarRight.Text = $"Lines: {lineCount}   Chars: {charCount}";
         }
 
         private void OnApplyClick(object sender, RoutedEventArgs e)

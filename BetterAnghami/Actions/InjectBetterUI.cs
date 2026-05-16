@@ -1,5 +1,4 @@
 ﻿using Microsoft.Web.WebView2.Core;
-using System.Threading.Tasks;
 
 namespace MRK.Actions
 {
@@ -21,7 +20,7 @@ namespace MRK.Actions
         {
             if (!_hasInjectedMainUI)
             {
-                var themesButton = await Utils.ReadEmbeddedResource("HTML.ThemesButton.html");
+                var themesButton = await AppUtils.ReadEmbeddedResource("HTML.ThemesButton.html");
                 // inject themes button
                 _hasInjectedMainUI = await WebView.ExecuteScriptAsync($$"""
                 (function() {
@@ -42,6 +41,9 @@ namespace MRK.Actions
                         // insert themes after settings
                         settingsButton.insertAdjacentHTML("afterend", `{{themesButton}}`);
 
+                        // insert version footer after themes button
+                        settingsButton.nextElementSibling.insertAdjacentHTML("afterend", `<li _ngcontent-anghami-web-v2-c99="" class="action mrk-version-footer"><a _ngcontent-anghami-web-v2-c99=""><span _ngcontent-anghami-web-v2-c99="">BetterAnghami v{{AppUtils.AppVersion}}</span></a></li>`);
+
                         return true;
                     }
                     catch (e) {
@@ -54,7 +56,7 @@ namespace MRK.Actions
         }
 
         public override bool ShouldConsume()
-        { 
+        {
             return false;
         }
     }

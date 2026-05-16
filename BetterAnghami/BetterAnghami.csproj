@@ -2,20 +2,26 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net9.0-windows7.0</TargetFramework>
+    <TargetFramework>net10.0-windows7.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <ImplicitUsings>disable</ImplicitUsings>
+    <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>False</UseWindowsForms>
     <RootNamespace>MRK</RootNamespace>
     <ApplicationIcon>anghami.ico</ApplicationIcon>
     <PlatformTarget>x64</PlatformTarget>
+    <Version>0.3.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Resources\CSS\BetterAnghami.css" />
     <None Remove="Resources\CSS\Themes\BetterDark.css" />
     <None Remove="Resources\CSS\Themes\DefaultDark.css" />
+    <None Remove="Resources\CSS\Themes\MidnightAbyss.css" />
+    <None Remove="Resources\CSS\Themes\ShadcnDark.css" />
+    <None Remove="Resources\CSS\Themes\NordDark.css" />
+    <None Remove="Resources\CSS\Themes\Dracula.css" />
+    <None Remove="Resources\CSS\Themes\CatppuccinMocha.css" />
     <None Remove="Resources\HTML\ThemesButton.html" />
   </ItemGroup>
 
@@ -27,21 +33,20 @@
     <EmbeddedResource Include="Resources\CSS\BetterAnghami.css" />
     <EmbeddedResource Include="Resources\CSS\Themes\BetterDark.css" />
     <EmbeddedResource Include="Resources\CSS\Themes\DefaultDark.css" />
+    <EmbeddedResource Include="Resources\CSS\Themes\MidnightAbyss.css" />
+    <EmbeddedResource Include="Resources\CSS\Themes\ShadcnDark.css" />
+    <EmbeddedResource Include="Resources\CSS\Themes\NordDark.css" />
+    <EmbeddedResource Include="Resources\CSS\Themes\Dracula.css" />
+    <EmbeddedResource Include="Resources\CSS\Themes\CatppuccinMocha.css" />
     <EmbeddedResource Include="Resources\HTML\ThemesButton.html" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FuzzySharp" Version="2.0.2" />
+    <PackageReference Include="DiscordRichPresence" Version="1.5.0.51" />
     <PackageReference Include="Gu.Wpf.Adorners" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3065.39" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3967.48" />
     <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
-    <PackageReference Include="PixiEditor.ColorPicker" Version="3.4.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\CssToThemePropertiesConverter\CssToThemePropertiesConverter.csproj" />
-    <ProjectReference Include="..\DiscordRPCIntegration\DiscordRPCIntegration.csproj" />
-    <ProjectReference Include="..\Shared\Shared.csproj" />
+    <PackageReference Include="PixiEditor.ColorPicker" Version="3.4.2.3" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,4 @@
 ﻿using Microsoft.Web.WebView2.Core;
-using System;
-using System.Threading.Tasks;
 
 namespace MRK.Actions
 {
@@ -27,7 +25,7 @@ namespace MRK.Actions
 
         public override bool ShouldConsume()
         {
-            return true;
+            return false;
         }
     }
 }
