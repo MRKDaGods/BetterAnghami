@@ -4,7 +4,13 @@ namespace Theme.WPF.Themes.Attached
 {
     public static class MenuHelper
     {
-        public static readonly DependencyProperty UseStretchedContentProperty = DependencyProperty.RegisterAttached("UseStretchedContent", typeof(bool), typeof(MenuHelper), new PropertyMetadata(false));
+        public static readonly DependencyProperty UseStretchedContentProperty =
+            DependencyProperty.RegisterAttached(
+                "UseStretchedContent",
+                typeof(bool),
+                typeof(MenuHelper),
+                new PropertyMetadata(false)
+            );
 
         public static void SetUseStretchedContent(DependencyObject element, bool value)
         {

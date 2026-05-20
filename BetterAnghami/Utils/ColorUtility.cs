@@ -1,6 +1,6 @@
-﻿using MRK.Models;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using System.Windows.Media;
+using MRK.Models;
 
 namespace MRK
 {
@@ -19,7 +19,12 @@ namespace MRK
                 foreach (var match in expressions[i].EnumerateMatches(text))
                 {
                     result.Add(
-                        new ThemeColor(match.Index, match.Length, text.Substring(match.Index, match.Length), (ThemeColorType)(i + 1))
+                        new ThemeColor(
+                            match.Index,
+                            match.Length,
+                            text.Substring(match.Index, match.Length),
+                            (ThemeColorType)(i + 1)
+                        )
                     );
                 }
             }
@@ -42,8 +47,7 @@ namespace MRK
                 return Colors.Transparent;
             }
 
-            var components = rgb.Substring(start + 1, end - start - 1)
-                .Split(',');
+            var components = rgb.Substring(start + 1, end - start - 1).Split(',');
 
             var r = byte.Parse(components[0]);
             var g = byte.Parse(components[1]);
@@ -63,13 +67,22 @@ namespace MRK
             }
         }
 
-        [GeneratedRegex("#[a-f\\d]{3}(?:[a-f\\d]?|(?:[a-f\\d]{3}(?:[a-f\\d]{2})?)?)\\b", RegexOptions.IgnoreCase)]
+        [GeneratedRegex(
+            "#[a-f\\d]{3}(?:[a-f\\d]?|(?:[a-f\\d]{3}(?:[a-f\\d]{2})?)?)\\b",
+            RegexOptions.IgnoreCase
+        )]
         private static partial Regex HexColorRegex();
 
-        [GeneratedRegex("hsla?\\((?:(-?\\d+(?:deg|g?rad|turn)?),\\s*((?:\\d{1,2}|100)%),\\s*((?:\\d{1,2}|100)%)(?:,\\s*((?:\\d{1,2}|100)%|0(?:\\.\\d+)?|1))?|(-?\\d+(?:deg|g?rad|turn)?)\\s+((?:\\d{1,2}|100)%)\\s+((?:\\d{1,2}|100)%)(?:\\s+((?:\\d{1,2}|100)%|0(?:\\.\\d+)?|1))?)\\)", RegexOptions.IgnoreCase)]
+        [GeneratedRegex(
+            "hsla?\\((?:(-?\\d+(?:deg|g?rad|turn)?),\\s*((?:\\d{1,2}|100)%),\\s*((?:\\d{1,2}|100)%)(?:,\\s*((?:\\d{1,2}|100)%|0(?:\\.\\d+)?|1))?|(-?\\d+(?:deg|g?rad|turn)?)\\s+((?:\\d{1,2}|100)%)\\s+((?:\\d{1,2}|100)%)(?:\\s+((?:\\d{1,2}|100)%|0(?:\\.\\d+)?|1))?)\\)",
+            RegexOptions.IgnoreCase
+        )]
         private static partial Regex HSLColorRegex();
 
-        [GeneratedRegex("rgba?\\((?:(25[0-5]|2[0-4]\\d|1?\\d{1,2}|(?:\\d{1,2}|100)%),\\s*(25[0-5]|2[0-4]\\d|1?\\d{1,2}|(?:\\d{1,2}|100)%),\\s*(25[0-5]|2[0-4]\\d|1?\\d{1,2}|(?:\\d{1,2}|100)%)(?:,\\s*((?:\\d{1,2}|100)%|0(?:\\.\\d+)?|1))?|(25[0-5]|2[0-4]\\d|1?\\d{1,2}|(?:\\d{1,2}|100)%)\\s+(25[0-5]|2[0-4]\\d|1?\\d{1,2}|(?:\\d{1,2}|100)%)\\s+(25[0-5]|2[0-4]\\d|1?\\d{1,2}|(?:\\d{1,2}|100)%)(?:\\s+((?:\\d{1,2}|100)%|0(?:\\.\\d+)?|1))?)\\)", RegexOptions.IgnoreCase)]
+        [GeneratedRegex(
+            "rgba?\\((?:(25[0-5]|2[0-4]\\d|1?\\d{1,2}|(?:\\d{1,2}|100)%),\\s*(25[0-5]|2[0-4]\\d|1?\\d{1,2}|(?:\\d{1,2}|100)%),\\s*(25[0-5]|2[0-4]\\d|1?\\d{1,2}|(?:\\d{1,2}|100)%)(?:,\\s*((?:\\d{1,2}|100)%|0(?:\\.\\d+)?|1))?|(25[0-5]|2[0-4]\\d|1?\\d{1,2}|(?:\\d{1,2}|100)%)\\s+(25[0-5]|2[0-4]\\d|1?\\d{1,2}|(?:\\d{1,2}|100)%)\\s+(25[0-5]|2[0-4]\\d|1?\\d{1,2}|(?:\\d{1,2}|100)%)(?:\\s+((?:\\d{1,2}|100)%|0(?:\\.\\d+)?|1))?)\\)",
+            RegexOptions.IgnoreCase
+        )]
         private static partial Regex RGBColorRegex();
     }
 }

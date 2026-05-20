@@ -101,11 +101,9 @@ namespace MRK
             // corresponding action store
             var store = _actions[webViewEvent];
 
-            var actions = store.Actions;
-            if (filter != null)
-            {
-                actions = actions.Where(filter).ToList();
-            }
+            // snapshot before iterating so actions registered during execution don't fault the enumerator
+            var actions =
+                filter != null ? store.Actions.Where(filter).ToList() : [.. store.Actions];
 
             // sort ascendingly by execution delay
             actions.Sort((x, y) => x.ExecutionDelay.CompareTo(y.ExecutionDelay));
@@ -143,9 +141,15 @@ namespace MRK
         /// <summary>
         /// Directly executes the provided script, and returns the result
         /// </summary>
-        public async Task<string> ExecuteActionRaw(string script)
+        public static async Task<string> ExecuteActionRaw(string script)
         {
             return await AnghamiWindow.Instance.WebView.ExecuteScriptAsync(script);
+        }
+
+        public T? GetRunningAction<T>()
+            where T : AsyncConsumableAction
+        {
+            return _actions.SelectMany(x => x.Value.Actions).OfType<T>().FirstOrDefault();
         }
     }
 }

@@ -4,10 +4,22 @@ namespace MRK.Actions
 {
     public class SetLoadingScreenAction(CoreWebView2 webView) : AsyncConsumableAction(webView)
     {
+        private bool _brandRevealed;
+
         public override bool WaitForLoad => false;
 
         public override async Task Execute()
         {
+            // On subsequent navigations the brand reveal has
+            // just drop any leftover cover overlay and bail out
+            if (_brandRevealed)
+            {
+                await WebView.ExecuteScriptAsync(
+                    "var s=document.getElementById('mrk-cover');if(s)s.remove();"
+                );
+                return;
+            }
+
             // check if preloader wrapper is present
             var preloaderExists = await WebView.ExecuteScriptAsync(
                 """
@@ -20,15 +32,17 @@ namespace MRK.Actions
             {
                 // no preloader, drop the cover
                 await WebView.ExecuteScriptAsync(
-                    "var s=document.getElementById('mrk-cover-style');if(s)s.remove();"
+                    "var s=document.getElementById('mrk-cover');if(s)s.remove();"
                 );
+                _brandRevealed = true;
                 return;
             }
 
-            // mutate in-place to avoid a one-frame DOM gap, then drop the cover
+            // mutate the preloader in-place, then drop the cover
             await WebView.ExecuteScriptAsync(
                 $$"""
                 mrk_preloader.id = 'mrk-app-preloader-wrapper';
+                mrk_preloader.style.setProperty('background-color', '#09090b');
                 mrk_preloader.innerHTML = `
                     <div class="mrk-brand">
                         <img src="https://cdnweb.anghami.com/web/assets/img/logos/New_Logo_Dark@2x.png" alt="anghami" width="96">
@@ -39,7 +53,7 @@ namespace MRK.Actions
                     </div>
                     <span class="mrk-version">v{{AppUtils.AppVersion}}</span>
                 `;
-                var s = document.getElementById('mrk-cover-style');
+                var s = document.getElementById('mrk-cover');
                 if (s) s.remove();
                 """
             );
@@ -75,11 +89,13 @@ namespace MRK.Actions
                 mrk_preloader.remove();
                 """
             );
+
+            _brandRevealed = true;
         }
 
         public override bool ShouldConsume()
         {
-            return true;
+            return false;
         }
     }
 }

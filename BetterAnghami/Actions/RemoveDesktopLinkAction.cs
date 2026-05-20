@@ -19,21 +19,24 @@ namespace MRK.Actions
         public override async Task Execute()
         {
             // remove the desktop link element
-            _hasRemovedLink = await WebView.ExecuteScriptAsync("""
-                var mrk_desktopLink = document.getElementsByClassName("desktop-link");
-                var mrk_tempResult = mrk_desktopLink.length > 0;
-                if (mrk_tempResult) {
-                    mrk_desktopLink[0].remove();
-                }
+            _hasRemovedLink =
+                await WebView.ExecuteScriptAsync(
+                    """
+                    var mrk_desktopLink = document.getElementsByClassName("desktop-link");
+                    var mrk_tempResult = mrk_desktopLink.length > 0;
+                    if (mrk_tempResult) {
+                        mrk_desktopLink[0].remove();
+                    }
 
-                mrk_tempResult;
-                """) == "true";
+                    mrk_tempResult;
+                    """
+                ) == "true";
         }
 
         public override bool ShouldConsume()
         {
             // navbar supposedly maintains its state
-            // remove only 
+            // remove only
             return _hasRemovedLink;
         }
     }

@@ -1,0 +1,250 @@
+<Window
+  x:Class="MRK.WelcomeWindow"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  mc:Ignorable="d"
+  Title="BetterAnghami"
+  Width="560"
+  SizeToContent="Height"
+  ResizeMode="NoResize"
+  WindowStartupLocation="CenterOwner"
+  Style="{DynamicResource CustomWindowStyle}"
+  TextOptions.TextFormattingMode="Ideal"
+  TextOptions.TextRenderingMode="ClearType"
+  UseLayoutRounding="True"
+>
+  <Window.Resources>
+    <!-- Typography -->
+    <FontFamily x:Key="UiFont">Segoe UI Variable Text, Segoe UI, system-ui, sans-serif</FontFamily>
+    <FontFamily x:Key="DisplayFont"
+      >Segoe UI Variable Display, Segoe UI, system-ui, sans-serif</FontFamily
+    >
+
+    <!-- Palette - zinc dark surface + violet accent -->
+    <SolidColorBrush x:Key="BgPrimary" Color="#09090B" />
+    <SolidColorBrush x:Key="BgPanel" Color="#0E0E11" />
+    <SolidColorBrush x:Key="BgChip" Color="#1C1C21" />
+    <SolidColorBrush x:Key="BorderSubtle" Color="#1F1F23" />
+    <SolidColorBrush x:Key="BorderStrong" Color="#2A2A30" />
+    <SolidColorBrush x:Key="TextPrimary" Color="#FAFAFA" />
+    <SolidColorBrush x:Key="TextBody" Color="#D4D4D8" />
+    <SolidColorBrush x:Key="TextSecondary" Color="#A1A1AA" />
+    <SolidColorBrush x:Key="TextMuted" Color="#8E8E96" />
+    <SolidColorBrush x:Key="Accent" Color="#C084FC" />
+    <SolidColorBrush x:Key="AccentStrong" Color="#A855F7" />
+    <SolidColorBrush x:Key="AccentDeep" Color="#7C3AED" />
+  </Window.Resources>
+
+  <Grid Background="{StaticResource BgPrimary}">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="2" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="1" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="1" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <!-- Top gradient accent strip -->
+    <Rectangle Grid.Row="0">
+      <Rectangle.Fill>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+          <GradientStop Color="#7C3AED" Offset="0" />
+          <GradientStop Color="#A855F7" Offset="0.5" />
+          <GradientStop Color="#EC4899" Offset="1" />
+        </LinearGradientBrush>
+      </Rectangle.Fill>
+    </Rectangle>
+
+    <!-- Header -->
+    <Border Grid.Row="1" Padding="44 40 44 36">
+      <StackPanel>
+        <!-- Eyebrow: small uppercase accent label -->
+        <TextBlock
+          Text="{Binding Subtitle}"
+          FontFamily="{StaticResource UiFont}"
+          FontSize="11"
+          FontWeight="SemiBold"
+          Foreground="{StaticResource Accent}"
+          Margin="0 0 0 14"
+        >
+          <TextBlock.Resources>
+            <Style TargetType="TextBlock">
+              <Setter Property="TextOptions.TextFormattingMode" Value="Ideal" />
+            </Style>
+          </TextBlock.Resources>
+        </TextBlock>
+
+        <!-- Title row: "Better" thin + "Anghami" semibold for brand contrast -->
+        <StackPanel Orientation="Horizontal" Margin="0 0 0 12">
+          <TextBlock
+            Text="Better"
+            FontFamily="{StaticResource DisplayFont}"
+            FontSize="38"
+            FontWeight="Light"
+            Foreground="{StaticResource TextPrimary}"
+          />
+          <TextBlock
+            Text="Anghami"
+            FontFamily="{StaticResource DisplayFont}"
+            FontSize="38"
+            FontWeight="SemiBold"
+            Foreground="{StaticResource TextPrimary}"
+          />
+        </StackPanel>
+
+        <!-- Tagline -->
+        <TextBlock
+          FontFamily="{StaticResource UiFont}"
+          FontSize="14"
+          FontWeight="Normal"
+          Foreground="{StaticResource TextSecondary}"
+          TextWrapping="Wrap"
+          LineHeight="22"
+        >
+          <Run Text="Now running" />
+          <Run
+            Text="{Binding VersionText, Mode=OneWay}"
+            Foreground="{StaticResource TextBody}"
+            FontWeight="SemiBold"
+          />
+          <Run Text="— here's what changed." />
+        </TextBlock>
+      </StackPanel>
+    </Border>
+
+    <Rectangle Grid.Row="2" Fill="{StaticResource BorderStrong}" />
+
+    <!-- Scrollable changelog -->
+    <ScrollViewer
+      Grid.Row="3"
+      MaxHeight="380"
+      VerticalScrollBarVisibility="Auto"
+      HorizontalScrollBarVisibility="Disabled"
+      Background="{StaticResource BgPanel}"
+    >
+      <Border Padding="44 32 44 20">
+        <ItemsControl ItemsSource="{Binding Changelogs}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <StackPanel Margin="0 0 0 32">
+                <!-- Version label -->
+                <StackPanel Orientation="Horizontal" Margin="0 0 0 16">
+                  <Border
+                    Background="{StaticResource BgChip}"
+                    BorderBrush="{StaticResource BorderStrong}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="10 4"
+                  >
+                    <TextBlock
+                      Text="{Binding Version}"
+                      FontFamily="{StaticResource UiFont}"
+                      FontSize="11.5"
+                      FontWeight="SemiBold"
+                      Foreground="{StaticResource TextBody}"
+                    />
+                  </Border>
+                </StackPanel>
+
+                <!-- Change entries -->
+                <ItemsControl ItemsSource="{Binding Changes}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid Margin="0 0 0 12">
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="22" />
+                          <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Ellipse
+                          Grid.Column="0"
+                          Width="6"
+                          Height="6"
+                          Fill="{StaticResource Accent}"
+                          HorizontalAlignment="Left"
+                          VerticalAlignment="Top"
+                          Margin="0 9 0 0"
+                        />
+                        <TextBlock
+                          Grid.Column="1"
+                          Text="{Binding}"
+                          FontFamily="{StaticResource UiFont}"
+                          FontSize="13.5"
+                          Foreground="{StaticResource TextBody}"
+                          TextWrapping="Wrap"
+                          LineHeight="22"
+                        />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </Border>
+    </ScrollViewer>
+
+    <Rectangle Grid.Row="4" Fill="{StaticResource BorderStrong}" />
+
+    <!-- Footer -->
+    <Border Grid.Row="5" Padding="44 24 44 32">
+      <Button Content="{Binding ButtonText}" Height="46" Click="OnActionClick">
+        <Button.Style>
+          <Style TargetType="Button">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="Template">
+              <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                  <Border
+                    x:Name="border"
+                    CornerRadius="10"
+                    BorderThickness="1"
+                    BorderBrush="#B97DFB"
+                  >
+                    <Border.Background>
+                      <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#A855F7" Offset="0" />
+                        <GradientStop Color="#7C3AED" Offset="1" />
+                      </LinearGradientBrush>
+                    </Border.Background>
+                    <ContentPresenter
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center"
+                      TextElement.Foreground="White"
+                    />
+                  </Border>
+                  <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                      <Setter TargetName="border" Property="BorderBrush" Value="#CBA0FC" />
+                      <Setter TargetName="border" Property="Background">
+                        <Setter.Value>
+                          <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#B873FA" Offset="0" />
+                            <GradientStop Color="#8B45EF" Offset="1" />
+                          </LinearGradientBrush>
+                        </Setter.Value>
+                      </Setter>
+                    </Trigger>
+                    <Trigger Property="IsPressed" Value="True">
+                      <Setter TargetName="border" Property="Background" Value="#6D28D9" />
+                      <Setter TargetName="border" Property="BorderBrush" Value="#8B5CF6" />
+                    </Trigger>
+                  </ControlTemplate.Triggers>
+                </ControlTemplate>
+              </Setter.Value>
+            </Setter>
+          </Style>
+        </Button.Style>
+      </Button>
+    </Border>
+  </Grid>
+</Window>

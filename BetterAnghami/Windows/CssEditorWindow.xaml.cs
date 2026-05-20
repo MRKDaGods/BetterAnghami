@@ -1,7 +1,7 @@
-﻿using MRK.Models;
-using Ookii.Dialogs.Wpf;
-using System.Text;
+﻿using System.Text;
 using System.Windows;
+using MRK.Models;
+using Ookii.Dialogs.Wpf;
 
 namespace MRK
 {
@@ -75,7 +75,10 @@ namespace MRK
         /// <summary>
         /// Handles content changes and updates the status bar
         /// </summary>
-        private void OnContentTextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        private void OnContentTextChanged(
+            object sender,
+            System.Windows.Controls.TextChangedEventArgs e
+        )
         {
             UpdateStatusBar();
         }
@@ -86,7 +89,8 @@ namespace MRK
         private void UpdateStatusBar()
         {
             var text = contentTextbox.Text ?? string.Empty;
-            var lineCount = text.Length == 0 ? 0 : text.ReplaceLineEndings("\n").Count(c => c == '\n') + 1;
+            var lineCount =
+                text.Length == 0 ? 0 : text.ReplaceLineEndings("\n").Count(c => c == '\n') + 1;
             var charCount = text.Length;
 
             statusBarLeft.Text = Theme.IsBuiltIn
@@ -99,14 +103,18 @@ namespace MRK
         private void OnApplyClick(object sender, RoutedEventArgs e)
         {
             // set new props
-            NewProperties = CssToThemePropertyConverter.Convert(contentTextbox.Text, out var unparsed);
+            NewProperties = CssToThemePropertyConverter.Convert(
+                contentTextbox.Text,
+                out var unparsed
+            );
 
             using var dialog = new TaskDialog
             {
                 WindowTitle = "Better Anghami - CSS Editor",
                 MainInstruction = $"Parsed {NewProperties.Count} variables",
-                ExpandedInformation = $"Unparsed lines{Environment.NewLine}{string.Join(Environment.NewLine, unparsed)}",
-                ExpandFooterArea = true
+                ExpandedInformation =
+                    $"Unparsed lines{Environment.NewLine}{string.Join(Environment.NewLine, unparsed)}",
+                ExpandFooterArea = true,
             };
 
             dialog.Buttons.Add(new TaskDialogButton(ButtonType.Ok));

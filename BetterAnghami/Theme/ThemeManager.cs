@@ -1,7 +1,7 @@
-﻿using MRK.Models;
-using System.IO;
+﻿using System.IO;
 using System.Reflection;
 using System.Text.Json;
+using MRK.Models;
 
 namespace MRK
 {
@@ -119,7 +119,10 @@ namespace MRK
             catch
             {
                 // back it up incase
-                FileManager.Rename(installedThemesFileName, $"Invalid_{installedThemesFileName}.bak");
+                FileManager.Rename(
+                    installedThemesFileName,
+                    $"Invalid_{installedThemesFileName}.bak"
+                );
 
                 // throw exception, how should we handle it later?
                 throw new InvalidDataException("Invalid installed themes file");
@@ -203,13 +206,17 @@ namespace MRK
         /// Creates a new theme from the given metadata, copying properties from <paramref name="baseTheme"/>.
         /// Falls back to the built-in DefaultDark theme if <paramref name="baseTheme"/> is null.
         /// </summary>
-        public async Task<BetterAnghamiError> CreateTheme(ThemeMetadata metadata, ThemeMetadata? baseTheme = null)
+        public async Task<BetterAnghamiError> CreateTheme(
+            ThemeMetadata metadata,
+            ThemeMetadata? baseTheme = null
+        )
         {
             List<ThemeProperty>? themeProps;
 
             if (baseTheme != null)
             {
-                themeProps = await LoadTheme(baseTheme) ?? await GetBuiltInThemeProperties("DefaultDark");
+                themeProps =
+                    await LoadTheme(baseTheme) ?? await GetBuiltInThemeProperties("DefaultDark");
             }
             else
             {
@@ -229,7 +236,11 @@ namespace MRK
         /// Installs a theme and writes it to disk
         /// </summary>
         /// <param name="installBackingStoreOnly">Should we only install the backing store?</param>
-        public async Task<BetterAnghamiError> InstallTheme(ThemeMetadata metadata, List<ThemeProperty> props, bool installBackingStoreOnly = false)
+        public async Task<BetterAnghamiError> InstallTheme(
+            ThemeMetadata metadata,
+            List<ThemeProperty> props,
+            bool installBackingStoreOnly = false
+        )
         {
             if (!installBackingStoreOnly)
             {
@@ -282,7 +293,7 @@ namespace MRK
                 const string MetadataEndTag = "</metadata>";
 
                 // check for start
-                if (buf.EndsWith(MetadaraStartTag)) // metadata start 
+                if (buf.EndsWith(MetadaraStartTag)) // metadata start
                 {
                     buf = string.Empty;
 
@@ -358,12 +369,13 @@ namespace MRK
             try
             {
                 // open stream
-                using var installedThemesFile = FileManager.Open(Configuration.Static.InstalledThemesFileName, FileMode.Create);
+                using var installedThemesFile = FileManager.Open(
+                    Configuration.Static.InstalledThemesFileName,
+                    FileMode.Create
+                );
 
                 // dont write built in themes to disk
-                var themesToWrite = InstalledThemes
-                    .Where(x => !x.IsBuiltIn)
-                    .ToList();
+                var themesToWrite = InstalledThemes.Where(x => !x.IsBuiltIn).ToList();
 
                 // write to stream
                 await JsonSerializer.SerializeAsync(installedThemesFile, themesToWrite);
@@ -393,8 +405,10 @@ namespace MRK
 
             // check if theme is installed
             ThemeMetadata? targetTheme;
-            if (string.IsNullOrEmpty(selectedThemeId) ||
-                (targetTheme = InstalledThemes.Find(x => x.Id == selectedThemeId)) == null)
+            if (
+                string.IsNullOrEmpty(selectedThemeId)
+                || (targetTheme = InstalledThemes.Find(x => x.Id == selectedThemeId)) == null
+            )
             {
                 // find default theme
                 targetTheme = InstalledThemes.Find(x => x.Id == DefaultThemeGuid);

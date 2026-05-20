@@ -85,6 +85,12 @@ li.mrk-version-footer:hover a {
     35% { transform: translateY(-5px) scale(1); opacity: 0.85; }
 }
 
+/* Dark base for non-app pages (login, error pages, etc.) */
+html:not(:has(anghami-base)) body {
+    background-color: #09090b !important;
+    color: #e8e8e8 !important;
+}
+
 /* Hide install App, incase not removed by script */
 .desktop-link {
     pointer-events: none;
@@ -110,4 +116,9 @@ i[_ngcontent-anghami-web-v2-c99] {
 .cell-title[_ngcontent-anghami-web-v2-c202] {
     font-weight: 500;
     font-size: 1.1em;
+}
+
+/* Login page - invert black horizontal logo to white on dark background */
+.main-login-header .header-logo {
+    filter: invert(1) !important;
 }

@@ -7,7 +7,7 @@ namespace MRK.Models
         None,
         Hex,
         HSL,
-        RGB
+        RGB,
     }
 
     public class ThemeColor

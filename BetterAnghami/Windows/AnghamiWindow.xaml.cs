@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Media;
 using Microsoft.Web.WebView2.Core;
@@ -11,7 +10,7 @@ namespace MRK
     /// <summary>
     /// Main Window
     /// </summary>
-    public partial class AnghamiWindow : Window, ISongHost
+    public partial class AnghamiWindow : Window
     {
         private readonly ObjectReference<bool> _running;
 
@@ -24,11 +23,9 @@ namespace MRK
         /// Anghami RPC instance
         /// </summary>
         private readonly AnghamiRPC _anghamiRPC;
+        private readonly WebViewResizeFix _resizeFix;
 
-        /// <summary>
-        /// Serializer options for Song JSON
-        /// </summary>
-        private readonly JsonSerializerOptions _songJsonSerializerOptions;
+        public SongService SongService { get; }
 
         public CoreWebView2 WebView => webViewControl.CoreWebView2;
 
@@ -62,14 +59,9 @@ namespace MRK
             // create running ref
             _running = new(true);
 
-            // instantiate rpc singleton
-            _anghamiRPC = new AnghamiRPC(this);
-
-            // json options
-            _songJsonSerializerOptions = new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            };
+            SongService = new SongService(() => IsRunning);
+            _anghamiRPC = new AnghamiRPC(SongService);
+            _resizeFix = new WebViewResizeFix(this);
 
             InitializeComponent();
         }
@@ -85,6 +77,8 @@ namespace MRK
 
         private void OnWindowClosing(object sender, CancelEventArgs e)
         {
+            _resizeFix.Detach();
+
             // close all other windows
             foreach (Window window in Application.Current.Windows)
             {
@@ -109,20 +103,32 @@ namespace MRK
             // initialize webview
             await webViewControl.EnsureCoreWebView2Async();
 
+            _resizeFix.Attach();
+
             webViewControl.DefaultBackgroundColor = System.Drawing.Color.FromArgb(255, 9, 9, 11);
 
             // inject dark cover at document creation to block page content until loading screen takes over
+            // observe `document` and insert a fixed overlay div as soon as <body> appears
             await WebView.AddScriptToExecuteOnDocumentCreatedAsync(
                 """
                 (function () {
-                    var s = document.createElement('style');
-                    s.id = 'mrk-cover-style';
-                    s.textContent = 'html::before{content:"";position:fixed!important;inset:0!important;z-index:2147483647!important;background:#09090b!important;pointer-events:none}';
-                    document.documentElement.appendChild(s);
-                    setTimeout(function () {
-                        var el = document.getElementById('mrk-cover-style');
-                        if (el) el.remove();
-                    }, 8000);
+                    var applied = false;
+                    function injectCover() {
+                        if (!applied && document.body) {
+                            applied = true;
+                            var d = document.createElement('div');
+                            d.id = 'mrk-cover';
+                            d.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:#09090b;pointer-events:none';
+                            document.body.appendChild(d);
+                        }
+                    }
+                    try {
+                        new MutationObserver(injectCover).observe(document, { childList: true, subtree: true });
+                    } catch (e) {
+                        // fall back to readystate-driven retry if observe somehow fails
+                        document.addEventListener('readystatechange', injectCover);
+                    }
+                    injectCover();
                 })();
                 """
             );
@@ -137,8 +143,8 @@ namespace MRK
             WebView.Settings.IsWebMessageEnabled = true;
             WebView.Settings.IsStatusBarEnabled = false;
 
-            // go to anghami home
-            WebView.Navigate(Links.Home);
+            // start on the login page; Anghami redirects to home if already logged in
+            WebView.Navigate(Links.Login);
 
             // register initial actions
             RegisterSourceChangedActions();
@@ -223,14 +229,23 @@ namespace MRK
         }
 
         /// <summary>
-        /// Checks for AnghamiBase in 500ms intervals
+        /// Polls for anghami-base in 500ms intervals. Bails immediately on the login page
+        /// and gives up after 15 seconds.
         /// </summary>
-        private static async Task WaitForAnghamiLoad()
+        private async Task WaitForAnghamiLoad()
         {
+            // login page never has anghami-base
+            if (WebView.Source.StartsWith(Links.Login))
+                return;
+
             const string findAnghamiBase = """document.body.innerHTML.indexOf("anghami-base")""";
 
-            while (await ActionManager.ExecuteActionRaw(findAnghamiBase) == "-1")
+            var deadline = DateTime.UtcNow.AddSeconds(15);
+            while (DateTime.UtcNow < deadline)
             {
+                if (await ActionManager.ExecuteActionRaw(findAnghamiBase) != "-1")
+                    return;
+
                 await Task.Delay(500);
             }
         }
@@ -241,6 +256,10 @@ namespace MRK
         private void RegisterSourceChangedActions()
         {
             ActionManager.RegisterAction(WebViewEvent.SourceChanged, new CheckLoginAction(WebView));
+            ActionManager.RegisterAction(
+                WebViewEvent.SourceChanged,
+                new ShowWelcomeAction(WebView)
+            );
             ActionManager.RegisterAction(
                 WebViewEvent.SourceChanged,
                 new RemoveDesktopLinkAction(WebView)
@@ -269,34 +288,6 @@ namespace MRK
                 WebViewEvent.DOMLoaded,
                 new SetLoadingScreenAction(WebView)
             );
-        }
-
-        /// <summary>
-        /// Gets the local Anghami user
-        /// </summary>
-        public async Task<User> GetLocalUser()
-        {
-            var json = await ActionManager.ExecuteActionRaw(
-                """
-                (function() {
-                    var viewProfile = document.getElementsByClassName("viewprofile")[0];
-                    var profileUrl = viewProfile.href;
-                    var id = parseInt(profileUrl.substring(profileUrl.lastIndexOf('/') + 1));
-
-                    // name is located in viewProfile's top sibling's text
-                    var name = viewProfile.parentElement.firstChild.innerText;
-
-                    return { Id: id, Name: name };
-                })()
-                """
-            );
-
-            if (json == "null")
-            {
-                throw new Exception("Cannot get local user");
-            }
-
-            return JsonSerializer.Deserialize<User>(json)!;
         }
 
         /// <summary>
@@ -329,87 +320,6 @@ namespace MRK
                     BorderBrush = new SolidColorBrush(color.Value);
                 }
             }
-        }
-
-        /// <summary>
-        /// Gets the currently playing song regardless of playing state
-        /// </summary>
-        public async Task<Song?> GetCurrentlyPlayingSong()
-        {
-            if (!IsRunning)
-            {
-                return null;
-            }
-
-            var json = await ActionManager.ExecuteActionRaw(
-                """
-                (function() {
-                    // too lazy to use getxxx
-                    const infoContainer = document.querySelector(".image-info-container");
-
-                    // get image url
-                    const bgImage = infoContainer.querySelector(".track-coverart").style.backgroundImage;
-                    const imgUrlStart = bgImage.indexOf('"') + 1;
-                    const imgUrlEnd = bgImage.lastIndexOf('"');
-                    const imgUrl = bgImage.substring(imgUrlStart, imgUrlEnd);
-                    
-                    // get song name and id
-                    const titleAnchor = infoContainer.querySelector(".action-title");
-                    const name = titleAnchor.innerText;
-                    const id = parseInt(titleAnchor.href.substring(titleAnchor.href.lastIndexOf('/') + 1)) || -1; // local files have no id
-
-                    // get artist
-                    const artistAnchor = infoContainer.querySelector(".action-artist");
-                    const artist = artistAnchor.innerText;
-
-                    // play details
-                    const mainPlayer = document.querySelector(".main-player");
-                    const playPauseCont = mainPlayer.querySelector(".play-pause-cont");
-                    const playState = playPauseCont.children[0].classList[1]; // button name is the second class as of 12/7/2024
-
-                    // durations
-                    const durations = mainPlayer.querySelectorAll(".duration-text");
-                    let durStart = "--", durEnd = "--";
-                    if (durations.length == 2) {
-                        durStart = durations[0].innerText;
-                        durEnd = durations[1].innerText; // remaining time
-                    }
-
-                    return {
-                        id,
-                        name,
-                        artist,
-                        imgUrl,
-                        playState,
-                        durStart,
-                        durEnd
-                    };
-                })()
-                """
-            );
-
-            // dont attempt to convert if un-necessary
-            if (json == "null")
-            {
-                return null;
-            }
-
-            try
-            {
-                return JsonSerializer.Deserialize<Song>(json, _songJsonSerializerOptions);
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Returns the currently playing song synchronously
-        /// </summary>
-        Song? ISongHost.GetCurrentlyPlayingSong()
-        {
-            return Dispatcher.Invoke(GetCurrentlyPlayingSong).GetAwaiter().GetResult();
         }
     }
 }

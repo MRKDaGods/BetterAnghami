@@ -7,10 +7,18 @@ namespace MRK.Models
         Unknown,
         Paused,
         Playing,
-        Buffering
+        Buffering,
     }
 
-    public partial class Song(int id, string name, string artist, string imgUrl, string playState, string durStart, string durEnd)
+    public partial class Song(
+        int id,
+        string name,
+        string artist,
+        string imgUrl,
+        string playState,
+        string durStart,
+        string durEnd
+    )
     {
         public static class PlayStateNames
         {
@@ -87,10 +95,10 @@ namespace MRK.Models
         {
             if (obj is Song other)
             {
-                return Id == other.Id &&
-                       Name == other.Name &&
-                       Artist == other.Artist &&
-                       ImgUrl == other.ImgUrl;
+                return Id == other.Id
+                    && Name == other.Name
+                    && Artist == other.Artist
+                    && ImgUrl == other.ImgUrl;
             }
             return false;
         }

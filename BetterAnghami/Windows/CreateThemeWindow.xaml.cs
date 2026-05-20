@@ -1,5 +1,5 @@
-﻿using MRK.Models;
-using System.Windows;
+﻿using System.Windows;
+using MRK.Models;
 
 namespace MRK
 {
@@ -22,7 +22,7 @@ namespace MRK
             // in theory, local user should never be null
             try
             {
-                var user = await AnghamiWindow.Instance.GetLocalUser();
+                var user = await AnghamiWindow.Instance.SongService.GetLocalUser();
 
                 // set creator as local user, and disable the corresponding textboxes
 
@@ -43,7 +43,8 @@ namespace MRK
                     creatorNameTextBox.IsEnabled =
                     themeNameTextBox.IsEnabled =
                     themeDescTextBox.IsEnabled =
-                    themeVersionTextBox.IsEnabled = false;
+                    themeVersionTextBox.IsEnabled =
+                        false;
 
                 // disable create button
                 createButton.IsEnabled = false;
@@ -67,7 +68,9 @@ namespace MRK
         private void SetError(string error)
         {
             errorText.Text = error;
-            errorText.Visibility = string.IsNullOrWhiteSpace(error) ? Visibility.Collapsed : Visibility.Visible;
+            errorText.Visibility = string.IsNullOrWhiteSpace(error)
+                ? Visibility.Collapsed
+                : Visibility.Visible;
         }
 
         /// <summary>
@@ -112,12 +115,13 @@ namespace MRK
             }
 
             var metadata = new ThemeMetadata(
-                    Guid.NewGuid().ToString("N"),
-                    themeNameTextBox.Text.Trim(),
-                    creatorId,
-                    creatorNameTextBox.Text.Trim(),
-                    themeDescTextBox.Text.Trim(),
-                    version.ToString());
+                Guid.NewGuid().ToString("N"),
+                themeNameTextBox.Text.Trim(),
+                creatorId,
+                creatorNameTextBox.Text.Trim(),
+                themeDescTextBox.Text.Trim(),
+                version.ToString()
+            );
 
             var baseTheme = baseThemeComboBox.SelectedItem as ThemeMetadata;
             var error = await ThemeManager.Instance.CreateTheme(metadata, baseTheme);

@@ -12,10 +12,16 @@ namespace MRK.Actions
 
         public override async Task Execute()
         {
+            // don't run on the login page
+            if (WebView.Source.StartsWith(Links.Login))
+                return;
+
             // are we logged in?
-            var result = await WebView.ExecuteScriptAsync("""
+            var result = await WebView.ExecuteScriptAsync(
+                """
                 document.getElementsByClassName("anghami-primary-btn login-btn a-like").length
-                """);
+                """
+            );
 
             if (result == "1")
             {

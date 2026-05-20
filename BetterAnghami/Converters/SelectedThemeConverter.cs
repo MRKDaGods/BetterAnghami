@@ -21,7 +21,12 @@ namespace MRK.Converters
             return themesWindow.SelectedTheme.Id == (string)value;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object ConvertBack(
+            object value,
+            Type targetType,
+            object parameter,
+            CultureInfo culture
+        )
         {
             throw new NotImplementedException();
         }

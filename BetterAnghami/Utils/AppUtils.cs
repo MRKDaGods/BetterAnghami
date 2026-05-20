@@ -1,9 +1,9 @@
-﻿using Ookii.Dialogs.Wpf;
-using System.IO;
+﻿using System.IO;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Windows.Threading;
+using Ookii.Dialogs.Wpf;
 
 namespace MRK
 {
@@ -24,10 +24,16 @@ namespace MRK
         /// Reads an embedded resosurce
         /// <para>Example: <em>MRK.Resources.CSS.BetterAnghami.css</em></para>
         /// </summary>
-        public static async Task<string> ReadEmbeddedResource(string resourceName, bool appendPrefix = true)
+        public static async Task<string> ReadEmbeddedResource(
+            string resourceName,
+            bool appendPrefix = true
+        )
         {
-            using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(
-                $"{(appendPrefix ? (ResourcesPrefix + '.') : string.Empty)}{resourceName}");
+            using var stream = Assembly
+                .GetExecutingAssembly()
+                .GetManifestResourceStream(
+                    $"{(appendPrefix ? (ResourcesPrefix + '.') : string.Empty)}{resourceName}"
+                );
 
             using var reader = new StreamReader(stream!);
             return await reader.ReadToEndAsync();
@@ -47,10 +53,11 @@ namespace MRK
         /// </summary>
         public static void DispatchLater(DispatcherObject owner, Action action, int delay)
         {
-            _ = Task.Delay(delay).ContinueWith(_ =>
-            {
-                owner.Dispatcher.Invoke(action);
-            });
+            _ = Task.Delay(delay)
+                .ContinueWith(_ =>
+                {
+                    owner.Dispatcher.Invoke(action);
+                });
         }
 
         /// <summary>
@@ -61,14 +68,15 @@ namespace MRK
             string mainInstruction = "",
             string content = "",
             string expandedInfo = "",
-            ButtonType[]? buttons = null)
+            ButtonType[]? buttons = null
+        )
         {
             using var dialog = new TaskDialog
             {
                 WindowTitle = windowTitle,
                 MainInstruction = mainInstruction,
                 Content = content,
-                ExpandedInformation = expandedInfo
+                ExpandedInformation = expandedInfo,
             };
 
             if (buttons != null && buttons.Length > 0)

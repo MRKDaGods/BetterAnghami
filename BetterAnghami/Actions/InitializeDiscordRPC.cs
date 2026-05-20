@@ -5,7 +5,8 @@ namespace MRK.Actions
     /// <summary>
     /// Ensures initialization of Discord RPC, and starts the RPC thread
     /// </summary>
-    public class InitializeDiscordRPC(CoreWebView2 webView, AnghamiRPC rpc) : AsyncConsumableAction(webView)
+    public class InitializeDiscordRPC(CoreWebView2 webView, AnghamiRPC rpc)
+        : AsyncConsumableAction(webView)
     {
         /// <summary>
         /// Has the RPC client been initialized?

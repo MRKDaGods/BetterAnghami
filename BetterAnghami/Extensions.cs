@@ -51,7 +51,10 @@ namespace MRK
         /// </summary>
         public static string GetText(this RichTextBox richTextBox)
         {
-            return new TextRange(richTextBox.Document.ContentStart, richTextBox.Document.ContentEnd).Text;
+            return new TextRange(
+                richTextBox.Document.ContentStart,
+                richTextBox.Document.ContentEnd
+            ).Text;
         }
 
         /// <summary>
@@ -67,16 +70,19 @@ namespace MRK
         /// Returns the first child of type <typeparamref name="T"/>
         /// <para>https://stackoverflow.com/a/10279201/24518001</para>
         /// </summary>
-        public static T? GetChildOfType<T>(this DependencyObject depObj) where T : DependencyObject
+        public static T? GetChildOfType<T>(this DependencyObject depObj)
+            where T : DependencyObject
         {
-            if (depObj == null) return null;
+            if (depObj == null)
+                return null;
 
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(depObj); i++)
             {
                 var child = VisualTreeHelper.GetChild(depObj, i);
 
                 var result = (child as T) ?? GetChildOfType<T>(child);
-                if (result != null) return result;
+                if (result != null)
+                    return result;
             }
 
             return null;

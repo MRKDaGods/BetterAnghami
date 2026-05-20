@@ -10,10 +10,8 @@ namespace MRK.Converters
         {
             if (value is Color c)
             {
-                var brightness = (int)Math.Sqrt(
-                    c.R * c.R * 0.299 +
-                    c.G * c.G * 0.587 +
-                    c.B * c.B * 0.114);
+                var brightness = (int)
+                    Math.Sqrt(c.R * c.R * 0.299 + c.G * c.G * 0.587 + c.B * c.B * 0.114);
 
                 return brightness > 130 ? Colors.Black : Colors.White;
             }
@@ -21,7 +19,12 @@ namespace MRK.Converters
             return Colors.Transparent;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object ConvertBack(
+            object value,
+            Type targetType,
+            object parameter,
+            CultureInfo culture
+        )
         {
             throw new NotImplementedException();
         }

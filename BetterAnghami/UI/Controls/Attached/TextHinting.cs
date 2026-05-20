@@ -14,7 +14,8 @@ namespace Theme.WPF.Themes.Attached
                 "ShowWhenFocused",
                 typeof(bool),
                 typeof(TextHinting),
-                new FrameworkPropertyMetadata(false));
+                new FrameworkPropertyMetadata(false)
+            );
 
         public static void SetShowWhenFocused(Control control, bool value)
         {

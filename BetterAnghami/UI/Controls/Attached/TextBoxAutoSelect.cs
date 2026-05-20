@@ -8,9 +8,18 @@ namespace Theme.WPF.Themes.Attached
     {
         private static readonly RoutedEventHandler Handler = ControlOnLoaded;
 
-        public static readonly DependencyProperty IsEnabledProperty = DependencyProperty.RegisterAttached("IsEnabled", typeof(bool), typeof(TextBoxAutoSelect), new PropertyMetadata(false, PropertyChangedCallback));
+        public static readonly DependencyProperty IsEnabledProperty =
+            DependencyProperty.RegisterAttached(
+                "IsEnabled",
+                typeof(bool),
+                typeof(TextBoxAutoSelect),
+                new PropertyMetadata(false, PropertyChangedCallback)
+            );
 
-        private static void PropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void PropertyChangedCallback(
+            DependencyObject d,
+            DependencyPropertyChangedEventArgs e
+        )
         {
             if (d is Control control)
             {

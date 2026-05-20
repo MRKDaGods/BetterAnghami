@@ -8,21 +8,21 @@ namespace MRK.Actions
     /// </summary>
     public class InjectBetterUI(CoreWebView2 webView) : AsyncConsumableAction(webView)
     {
-        /// <summary>
-        /// Did we inject the main UI? Themes button in hamburger menu, etc
-        /// </summary>
-        private bool _hasInjectedMainUI;
-
         public override bool WaitForLoad => true;
         public override int ExecutionDelay => 1000; // wait for a bit post-load
 
         public override async Task Execute()
         {
-            if (!_hasInjectedMainUI)
-            {
-                var themesButton = await AppUtils.ReadEmbeddedResource("HTML.ThemesButton.html");
-                // inject themes button
-                _hasInjectedMainUI = await WebView.ExecuteScriptAsync($$"""
+            // check DOM presence
+            var alreadyInjected = await WebView.ExecuteScriptAsync(
+                "document.getElementById('mrk-themes-btn') != null"
+            );
+            if (alreadyInjected == "true")
+                return;
+
+            var themesButton = await AppUtils.ReadEmbeddedResource("HTML.ThemesButton.html");
+            await WebView.ExecuteScriptAsync(
+                $$"""
                 (function() {
                     try {
                         // get options container, excluding the pfp container
@@ -43,16 +43,13 @@ namespace MRK.Actions
 
                         // insert version footer after themes button
                         settingsButton.nextElementSibling.insertAdjacentHTML("afterend", `<li _ngcontent-anghami-web-v2-c99="" class="action mrk-version-footer"><a _ngcontent-anghami-web-v2-c99=""><span _ngcontent-anghami-web-v2-c99="">BetterAnghami v{{AppUtils.AppVersion}}</span></a></li>`);
-
-                        return true;
                     }
                     catch (e) {
                         console.log(e);
-                        return false;
                     }
                 })()
-                """) == "true";
-            }
+                """
+            );
         }
 
         public override bool ShouldConsume()

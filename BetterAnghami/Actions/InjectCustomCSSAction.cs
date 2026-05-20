@@ -13,21 +13,42 @@ namespace MRK.Actions
 
         public override async Task Execute()
         {
+            // skip if already injected
+            var exists = await WebView.ExecuteScriptAsync(
+                "document.getElementById('mrk-better-css') != null"
+            );
+            if (exists == "true")
+                return;
+
             string injectedCss = await AppUtils.ReadEmbeddedResource("CSS.BetterAnghami.css");
 
-            // create <style> element, but inject in body to override inline body styling
-            await WebView.ExecuteScriptAsync($"""
+            // create <style> element with a stable id; inject in body to override inline body styling
+            await WebView.ExecuteScriptAsync(
+                $"""
                 var style = document.createElement('style');
+                style.id = 'mrk-better-css';
                 style.type = 'text/css';
                 style.innerHTML = `{injectedCss}`;
 
                 document.body.appendChild(style);
-                """);
+                """
+            );
+
+            // Login page: replace promo h3 with BetterAnghami branding
+            if (WebView.Source.StartsWith(Links.Login))
+            {
+                await WebView.ExecuteScriptAsync(
+                    """
+                    var h3 = document.querySelector('.main-login-body h3');
+                    if (h3) h3.textContent = 'Log in to BetterAnghami';
+                    """
+                );
+            }
         }
 
         public override bool ShouldConsume()
         {
-            return true;
+            return false;
         }
     }
 }

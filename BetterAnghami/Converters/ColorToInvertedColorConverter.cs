@@ -10,13 +10,23 @@ namespace MRK.Converters
         {
             if (value is Color col)
             {
-                return Color.FromArgb(col.A, (byte)(col.R ^ 0xFF), (byte)(col.G ^ 0xFF), (byte)(col.B ^ 0xFF));
+                return Color.FromArgb(
+                    col.A,
+                    (byte)(col.R ^ 0xFF),
+                    (byte)(col.G ^ 0xFF),
+                    (byte)(col.B ^ 0xFF)
+                );
             }
 
             return Colors.Transparent;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object ConvertBack(
+            object value,
+            Type targetType,
+            object parameter,
+            CultureInfo culture
+        )
         {
             throw new NotImplementedException();
         }

@@ -10,9 +10,13 @@ namespace Theme.WPF.Themes.Attached
                 "ListenToLength",
                 typeof(bool),
                 typeof(PasswordBoxHelper),
-                new FrameworkPropertyMetadata(false, PropertyChangedCallback));
+                new FrameworkPropertyMetadata(false, PropertyChangedCallback)
+            );
 
-        private static void PropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void PropertyChangedCallback(
+            DependencyObject d,
+            DependencyPropertyChangedEventArgs e
+        )
         {
             if (d is PasswordBox box)
             {
@@ -24,7 +28,11 @@ namespace Theme.WPF.Themes.Attached
             }
             else
             {
-                throw new Exception("DependencyObject is not a password box. It is '" + (d == null ? "null" : d.GetType().Name) + '\'');
+                throw new Exception(
+                    "DependencyObject is not a password box. It is '"
+                        + (d == null ? "null" : d.GetType().Name)
+                        + '\''
+                );
             }
         }
 
@@ -33,7 +41,8 @@ namespace Theme.WPF.Themes.Attached
                 "InputLength",
                 typeof(int),
                 typeof(PasswordBoxHelper),
-                new FrameworkPropertyMetadata(0));
+                new FrameworkPropertyMetadata(0)
+            );
 
         public static bool GetListenToLength(PasswordBox box)
         {

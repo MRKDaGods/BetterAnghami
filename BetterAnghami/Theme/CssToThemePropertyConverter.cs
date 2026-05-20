@@ -1,5 +1,5 @@
-﻿using MRK.Models;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
+using MRK.Models;
 
 namespace MRK
 {
@@ -61,7 +61,8 @@ namespace MRK
                 }
 
                 var name = line.Substring(0, seperatorIdx).Trim();
-                var value = line.Substring(seperatorIdx + 1, terminatorIdx - seperatorIdx - 1).Trim();
+                var value = line.Substring(seperatorIdx + 1, terminatorIdx - seperatorIdx - 1)
+                    .Trim();
 
                 result.Add(new ThemeProperty(name, value));
             }

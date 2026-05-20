@@ -60,6 +60,7 @@ namespace MRK
         public static class Keys
         {
             public const string SelectedThemeId = "selectedThemeId";
+            public const string LastSeenVersion = "lastSeenVersion";
         }
 
         private Dictionary<string, string> _config;
@@ -128,7 +129,6 @@ namespace MRK
                 _config.TryGetValue(key, out var val);
                 return new ConfigurationRecord(val ?? string.Empty);
             }
-
             set
             {
                 _config[key] = value;

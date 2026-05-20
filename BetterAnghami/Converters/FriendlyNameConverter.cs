@@ -23,15 +23,23 @@ namespace MRK.Converters
                 return value;
 
             // strip the leading -- (with or without a vendor prefix)
-            var stripped = raw.StartsWith("--") ? VendorPrefixRegex().Replace(raw, string.Empty) : raw;
+            var stripped = raw.StartsWith("--")
+                ? VendorPrefixRegex().Replace(raw, string.Empty)
+                : raw;
 
             // hyphens → spaces, then Title Case each word
             var words = stripped.Split('-', StringSplitOptions.RemoveEmptyEntries);
-            return string.Join(' ', words.Select(w =>
-                w.Length == 0 ? w : char.ToUpperInvariant(w[0]) + w[1..]));
+            return string.Join(
+                ' ',
+                words.Select(w => w.Length == 0 ? w : char.ToUpperInvariant(w[0]) + w[1..])
+            );
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-            => throw new NotSupportedException();
+        public object ConvertBack(
+            object value,
+            Type targetType,
+            object parameter,
+            CultureInfo culture
+        ) => throw new NotSupportedException();
     }
 }
