@@ -6,6 +6,20 @@ namespace MRK.Actions
     {
         private bool _brandRevealed;
 
+        /// <summary>
+        /// True once the loading screen has finished its reveal (or there was none to show).
+        /// This action never consumes itself (it keeps dropping the cover on later navigations),
+        /// so callers wait on this instead of the action leaving the queue.
+        /// <para>
+        /// Fixes a hang in <see cref="ShowWelcomeAction"/>, which used to wait like this:
+        /// </para>
+        /// <code>
+        /// do await Task.Delay(50);
+        /// while (ActionManager.Instance.GetRunningAction&lt;SetLoadingScreenAction&gt;() != null);
+        /// </code>
+        /// </summary>
+        public bool IsFinished => _brandRevealed;
+
         public override bool WaitForLoad => false;
 
         public override async Task Execute()

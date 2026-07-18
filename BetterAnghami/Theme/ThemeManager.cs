@@ -8,6 +8,7 @@ namespace MRK
     public class ThemeManager
     {
         private const string DefaultThemeGuid = "9046799d217c468c951eec725a221c3b";
+        private const string DefaultThemeName = "DefaultDark";
 
         /// <summary>
         /// Currently installed themes' metadata
@@ -50,7 +51,7 @@ namespace MRK
         /// Loads an <b>installed</b> theme
         /// <para>Call <see cref="LoadInstalledThemes" /> first</para>
         /// </summary>
-        public async Task<List<ThemeProperty>?> LoadTheme(ThemeMetadata metadata)
+        public async Task<ThemePropertyList?> LoadTheme(ThemeMetadata metadata)
         {
             // check if the given metadata is installed
             if (!InstalledThemes.Contains(metadata))
@@ -211,22 +212,22 @@ namespace MRK
             ThemeMetadata? baseTheme = null
         )
         {
-            List<ThemeProperty>? themeProps;
+            List<ThemeProperty>? themeProps = null;
 
             if (baseTheme != null)
             {
-                themeProps =
-                    await LoadTheme(baseTheme) ?? await GetBuiltInThemeProperties("DefaultDark");
-            }
-            else
-            {
-                themeProps = await GetBuiltInThemeProperties("DefaultDark");
+                themeProps = await LoadTheme(baseTheme);
             }
 
-            // install the theme
+            if (themeProps == null)
+            {
+                themeProps = await GetBuiltInThemeProperties(DefaultThemeName);
+            }
+
+            // Install the theme
             var result = await InstallTheme(metadata, themeProps);
 
-            // raise event handler
+            // Raise event handler
             RaiseThemesChangedEvent();
 
             return result;

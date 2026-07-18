@@ -4,6 +4,7 @@ using System.Windows.Media;
 using Microsoft.Web.WebView2.Core;
 using MRK.Actions;
 using MRK.Models;
+using MRK.UI;
 
 namespace MRK
 {
@@ -133,6 +134,9 @@ namespace MRK
                 """
             );
 
+            // Self-healing UI: CSS, theme, Themes button, login branding (see BetterUiReconciler)
+            await new BetterUiReconciler(WebView).InstallAsync();
+
             // attach event handlers
             WebView.DOMContentLoaded += OnWebViewDOMContentLoaded;
             WebView.SourceChanged += OnWebViewSourceChanged;
@@ -143,8 +147,13 @@ namespace MRK
             WebView.Settings.IsWebMessageEnabled = true;
             WebView.Settings.IsStatusBarEnabled = false;
 
-            // start on the login page; Anghami redirects to home if already logged in
-            WebView.Navigate(Links.Login);
+            // Boot on /home, not /login. Anghami only restores the last-played queue
+            // (the /playqueue/fetch call that renders the bottom player bar) when the SPA
+            // boots on an in-app route. Booting on /login and letting Anghami redirect to
+            // /home skips that restore, so the player bar never shows until a real re-login.
+            // Anghami does NOT bounce signed-out users off /home, so CheckLoginAction detects
+            // the signed-out state (login button present) and redirects to /login itself.
+            WebView.Navigate(Links.Home);
 
             // register initial actions
             RegisterSourceChangedActions();
@@ -266,9 +275,8 @@ namespace MRK
             );
             ActionManager.RegisterAction(
                 WebViewEvent.SourceChanged,
-                new SetSelectedThemeAction(WebView)
+                new SyncWindowThemeAction(WebView)
             );
-            ActionManager.RegisterAction(WebViewEvent.SourceChanged, new InjectBetterUI(WebView));
             ActionManager.RegisterAction(
                 WebViewEvent.SourceChanged,
                 new InitializeDiscordRPC(WebView, _anghamiRPC)
@@ -280,10 +288,8 @@ namespace MRK
         /// </summary>
         private void RegisterDOMContentLoadedActions()
         {
-            ActionManager.RegisterAction(
-                WebViewEvent.DOMLoaded,
-                new InjectCustomCSSAction(WebView)
-            );
+            // CSS injection + login rebranding live in the reconciler now (see BetterUiReconciler),
+            // so InjectCustomCSSAction is gone
             ActionManager.RegisterAction(
                 WebViewEvent.DOMLoaded,
                 new SetLoadingScreenAction(WebView)
@@ -293,16 +299,11 @@ namespace MRK
         /// <summary>
         /// Immediately applies the provided theme properties to the document
         /// </summary>
-        public async Task ApplyThemeImmediate(List<ThemeProperty> props)
+        public async Task ApplyThemeImmediate(ThemePropertyList props)
         {
-            var cssVars = string.Join(
-                ' ',
-                props.Select(x =>
-                    $"document.documentElement.style.setProperty('{x.Name}','{x.Value}');"
-                )
-            );
+            var cssVars = props.BuildCssPropertyList();
 
-            // set each variable as an inline style on <html> - inline specificity beats any stylesheet,
+            // Set each variable as an inline style on <html> - inline specificity beats any stylesheet,
             // and individual setProperty calls survive Anghami's JS touching body.style
             await ActionManager.ExecuteActionRaw(
                 $$"""
@@ -310,15 +311,32 @@ namespace MRK
                 """
             );
 
-            // update window title bar colour
-            var appBg = props.Find(x => x.Name == "--app-background");
-            if (appBg != null)
+            // Clear the playing-label so ThemeStep recomputes it for the new theme, then reconcile
+            await ActionManager.ExecuteActionRaw(
+                """
+                document.documentElement.style.removeProperty('--mrk-playing-label');
+                window.__mrkReconcile && window.__mrkReconcile();
+                """
+            );
+
+            // Sync the WPF window chrome to match
+            SyncWindowTheme(props);
+        }
+
+        /// <summary>
+        /// Applies the theme to the WPF window itself (title-bar border colour from --app-background).
+        /// ThemeStep owns the web content; this is the part page JS can't reach.
+        /// </summary>
+        public void SyncWindowTheme(ThemePropertyList props)
+        {
+            var appBg = props.FirstOrDefault(x => x.Name == "--app-background");
+            if (appBg == null)
+                return;
+
+            var color = ColorUtility.MatchColors(appBg.Value).FirstOrDefault()?.Color;
+            if (color != null)
             {
-                var color = ColorUtility.MatchColors(appBg.Value).FirstOrDefault()?.Color;
-                if (color != null)
-                {
-                    BorderBrush = new SolidColorBrush(color.Value);
-                }
+                BorderBrush = new SolidColorBrush(color.Value);
             }
         }
     }

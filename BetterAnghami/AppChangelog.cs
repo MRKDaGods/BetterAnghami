@@ -8,6 +8,16 @@ namespace MRK
         private static readonly VersionChangelog[] _all =
         [
             new(
+                "v0.3.2",
+                [
+                    "Player bar now restores on startup instead of only after re-logging in",
+                    "Signed-out users are taken straight to the login page",
+                    "Theme, Themes button and custom styles now reliably survive login and navigation",
+                    "Currently-playing song shown in a distinct, readable colour across all themes",
+                    "Fixed the Themes button appearing unstyled on newer Anghami builds",
+                ]
+            ),
+            new(
                 "v0.3.1",
                 [
                     "App opens directly to login page; dark styling applied to login",

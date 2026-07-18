@@ -20,9 +20,15 @@ namespace MRK.Actions
             if (lastVersion == currentVersion)
                 return;
 
-            // Wait for loading screen to finish
-            do await Task.Delay(50);
-            while (ActionManager.Instance.GetRunningAction<SetLoadingScreenAction>() != null);
+            // Wait for the loading screen to finish its reveal. It never consumes itself (it keeps
+            // dropping the cover on later navigations), so poll its state, not its queue presence.
+            // The timeout is a safety net so a stalled/failed reveal can't hang here indefinitely.
+            var loadingScreen = ActionManager.Instance.GetRunningAction<SetLoadingScreenAction>();
+            var deadline = DateTime.UtcNow.AddSeconds(15);
+            while (loadingScreen is { IsFinished: false } && DateTime.UtcNow < deadline)
+            {
+                await Task.Delay(50);
+            }
 
             bool isFirstLaunch = lastVersion.Length == 0;
 

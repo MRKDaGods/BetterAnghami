@@ -9,7 +9,7 @@
     <RootNamespace>MRK</RootNamespace>
     <ApplicationIcon>anghami.ico</ApplicationIcon>
     <PlatformTarget>x64</PlatformTarget>
-    <Version>0.3.1</Version>
+    <Version>0.3.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,7 +21,6 @@
     <None Remove="Resources\CSS\Themes\NordDark.css" />
     <None Remove="Resources\CSS\Themes\Dracula.css" />
     <None Remove="Resources\CSS\Themes\CatppuccinMocha.css" />
-    <None Remove="Resources\HTML\ThemesButton.html" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,7 +36,6 @@
     <EmbeddedResource Include="Resources\CSS\Themes\NordDark.css" />
     <EmbeddedResource Include="Resources\CSS\Themes\Dracula.css" />
     <EmbeddedResource Include="Resources\CSS\Themes\CatppuccinMocha.css" />
-    <EmbeddedResource Include="Resources\HTML\ThemesButton.html" />
   </ItemGroup>
 
   <ItemGroup>

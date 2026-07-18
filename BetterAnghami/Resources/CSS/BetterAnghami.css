@@ -122,3 +122,11 @@ i[_ngcontent-anghami-web-v2-c99] {
 .main-login-header .header-logo {
     filter: invert(1) !important;
 }
+
+/* Playing-row title uses .purple-label (var(--brand-purple)); some themes make brand-purple
+   ~ the background, so it's unreadable. Override just the playing row with --mrk-playing-label
+   (computed in ThemeStep), falling back to brand-purple until it's set. 
+   2 classes + !important beats Anghami's single-class .purple-label rule. */
+.currently-playing .purple-label {
+    color: var(--mrk-playing-label, var(--brand-purple)) !important;
+}
