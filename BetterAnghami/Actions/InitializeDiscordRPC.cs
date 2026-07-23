@@ -14,6 +14,11 @@ namespace MRK.Actions
         private bool _initialized = false;
 
         /// <summary>
+        /// Whether we've already logged an init failure (this action retries on every navigation)
+        /// </summary>
+        private bool _initFailureLogged;
+
+        /// <summary>
         /// Anghami RPC instance
         /// </summary>
         private readonly AnghamiRPC _anghamiRpc = rpc;
@@ -29,8 +34,19 @@ namespace MRK.Actions
 
                 if (_initialized)
                 {
+                    Tracer.Info(Tracer.Category.Rpc, "Discord RPC initialized, starting thread");
+
                     // start thread
                     _anghamiRpc.StartRpcThread();
+                }
+                else if (!_initFailureLogged)
+                {
+                    // log once, not on every navigation
+                    _initFailureLogged = true;
+                    Tracer.Warn(
+                        Tracer.Category.Rpc,
+                        "Discord RPC init failed (Discord not detected), will retry on navigation"
+                    );
                 }
             }
 

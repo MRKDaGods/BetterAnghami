@@ -13,6 +13,11 @@ namespace MRK
         private readonly Func<bool> _isRunning;
         private readonly JsonSerializerOptions _jsonOptions;
 
+        /// <summary>
+        /// Last distinct scrape error, so a broken page logs once instead of every second
+        /// </summary>
+        private string? _lastScrapeError;
+
         public bool IsRunning => _isRunning();
 
         public SongService(Func<bool> isRunning)
@@ -65,8 +70,13 @@ namespace MRK
             var json = await ActionManager.ExecuteActionRaw(
                 """
                 (function() {
-                    // too lazy to use getxxx
+                    // no player mounted means nothing is playing, that's not an error
                     const infoContainer = document.querySelector(".image-info-container");
+                    if (!infoContainer) return null;
+
+                    // anything past here throwing means the DOM shape changed under us, so hand
+                    // back a marker instead of letting WebView2 turn the throw into a bare "null"
+                    try {
 
                     // get image url
                     const bgImage = infoContainer.querySelector(".track-coverart").style.backgroundImage;
@@ -105,23 +115,71 @@ namespace MRK
                         durStart,
                         durEnd
                     };
+                    } catch (e) {
+                        return { __err: String((e && e.message) || e) };
+                    }
                 })()
                 """
             );
 
             if (json == "null")
             {
+                // nothing playing
+                NoteScrapeOk();
                 return null;
             }
 
             try
             {
-                return JsonSerializer.Deserialize<Song>(json, _jsonOptions);
+                using var doc = JsonDocument.Parse(json);
+
+                // the scrape hands back { __err } when the page shape changed under it
+                if (
+                    doc.RootElement.ValueKind == JsonValueKind.Object
+                    && doc.RootElement.TryGetProperty("__err", out var err)
+                )
+                {
+                    NoteScrapeError(err.GetString() ?? "unknown");
+                    return null;
+                }
+
+                var song = doc.RootElement.Deserialize<Song>(_jsonOptions);
+                NoteScrapeOk();
+                return song;
             }
-            catch
+            catch (Exception ex)
             {
+                NoteScrapeError(ex.Message);
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Logs a scrape failure once per distinct message (the RPC loop calls this every second)
+        /// </summary>
+        private void NoteScrapeError(string message)
+        {
+            if (message == _lastScrapeError)
+            {
+                return;
+            }
+
+            _lastScrapeError = message;
+            Tracer.Warn(Tracer.Category.Rpc, $"Song scrape failed: {message}");
+        }
+
+        /// <summary>
+        /// Logs recovery the first time the scrape works again after a failure
+        /// </summary>
+        private void NoteScrapeOk()
+        {
+            if (_lastScrapeError == null)
+            {
+                return;
+            }
+
+            _lastScrapeError = null;
+            Tracer.Info(Tracer.Category.Rpc, "Song scrape recovered");
         }
 
         /// <summary>

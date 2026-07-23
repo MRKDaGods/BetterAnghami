@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using DiscordRPC;
@@ -144,20 +145,40 @@ namespace MRK
 
         private async Task<string> FetchSongAlbumAsync(Song song)
         {
-            var url = $"https://play.anghami.com/song/{song.Id}";
-            using var client = new HttpClient();
+            try
+            {
+                var url = $"https://play.anghami.com/song/{song.Id}";
 
-            // Set the CoreWebView user agent
-            client.DefaultRequestHeaders.Add(
-                "User-Agent",
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36 Edg/91.0.864.59"
-            );
+                // Anghami serves this page over HTTP/2. The same request on HTTP/1.1 (HttpClient's
+                // default) comes back 406 Not Acceptable, so pin it to HTTP/2.
+                using var client = new HttpClient
+                {
+                    DefaultRequestVersion = HttpVersion.Version20,
+                    DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher,
+                };
 
-            var html = await client.GetStringAsync(url);
+                // look like a normal browser hitting the song page
+                client.DefaultRequestHeaders.Add(
+                    "User-Agent",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+                );
+                client.DefaultRequestHeaders.Add(
+                    "Accept",
+                    "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+                );
 
-            var albumName = AlbumRegex().Match(html).Groups[1].Value;
+                var html = await client.GetStringAsync(url);
 
-            return albumName;
+                var albumName = AlbumRegex().Match(html).Groups[1].Value;
+
+                return albumName;
+            }
+            catch (Exception ex)
+            {
+                // album is a nice-to-have, a failed fetch must not fault the continuation
+                Tracer.Warn(Tracer.Category.Rpc, $"Album fetch failed for song {song.Id}", ex);
+                return string.Empty;
+            }
         }
 
         private void OnFetchSongAlbumCompleted(Task<string> task)
@@ -233,6 +254,8 @@ namespace MRK
         /// </summary>
         private void RpcThread()
         {
+            Tracer.Info(Tracer.Category.Rpc, "RPC thread started");
+
             // keep track of last set song
             Song? lastSetSong = null;
             string? lastSetPlayState = null; // play state of last sent RPC
@@ -240,43 +263,71 @@ namespace MRK
 
             while (IsInitialized && _songHost.IsRunning)
             {
-                // check song
-                var song = _songHost.GetCurrentlyPlayingSong();
-                if (
-                    song != lastSetSong
-                    || (
-                        song != null
-                        && (
-                            lastSetPlayState != song.PlayState
-                            || Math.Abs(song.RemainingTime - lastRemainingTime)
-                                > MaxAllowedUnsynchronizedTime
+                try
+                {
+                    // check song
+                    var song = _songHost.GetCurrentlyPlayingSong();
+                    if (
+                        song != lastSetSong
+                        || (
+                            song != null
+                            && (
+                                lastSetPlayState != song.PlayState
+                                || Math.Abs(song.RemainingTime - lastRemainingTime)
+                                    > MaxAllowedUnsynchronizedTime
+                            )
                         )
                     )
-                )
+                    {
+                        if (song != null)
+                        {
+                            // a new track, not just a play-state or drift update
+                            if (song != lastSetSong)
+                            {
+                                Tracer.Debug(
+                                    Tracer.Category.Rpc,
+                                    $"Now playing: {song.Name} - {song.Artist} [{song.SongPlayStatus}]"
+                                );
+                            }
+
+                            // update local states
+                            lastSetPlayState = song.PlayState;
+                            lastRemainingTime = song.RemainingTime;
+
+                            // update rpc
+                            SetSong(song);
+                        }
+                        else
+                        {
+                            // went from a song to nothing (stopped, or the page scrape stopped resolving)
+                            if (lastSetSong != null)
+                            {
+                                Tracer.Debug(
+                                    Tracer.Category.Rpc,
+                                    "No song detected, cleared presence"
+                                );
+                            }
+
+                            // clear everything
+                            Clear();
+
+                            lastSetPlayState = null;
+                            lastRemainingTime = 0;
+                        }
+
+                        lastSetSong = song;
+                    }
+                }
+                catch (Exception ex)
                 {
-                    if (song != null)
-                    {
-                        // update local states
-                        lastSetPlayState = song.PlayState;
-                        lastRemainingTime = song.RemainingTime;
-
-                        // update rpc
-                        SetSong(song);
-                    }
-                    else
-                    {
-                        // clear everything
-                        Clear();
-
-                        lastSetPlayState = null;
-                        lastRemainingTime = 0;
-                    }
-
-                    lastSetSong = song;
+                    // don't let a single bad tick kill the thread and freeze presence
+                    Tracer.Error(Tracer.Category.Rpc, "RPC thread iteration failed", ex);
                 }
 
                 Thread.Sleep(RpcThreadInterval);
             }
+
+            Tracer.Info(Tracer.Category.Rpc, "RPC thread exiting");
         }
 
         /// <summary>

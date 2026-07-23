@@ -1,14 +1,18 @@
 namespace MRK.UI.Steps
 {
     /// <summary>
-    /// Adds the "Themes" button and version footer to Anghami's user-nav dropdown and removes
-    /// Anghami's dark-mode toggle. The button is a clone of the live Settings <c>.action</c>, so it
-    /// picks up Anghami's current markup instead of hardcoded HTML that goes stale each build.
+    /// Adds the "Themes" and "Open logs" buttons plus a version footer to Anghami's user-nav
+    /// dropdown and removes Anghami's dark-mode toggle. Each button is a clone of the live Settings
+    /// <c>.action</c>, so it picks up Anghami's current markup instead of hardcoded HTML that goes
+    /// stale each build.
     /// </summary>
     public class ThemesButtonStep : IUiStep
     {
         // the only theme-ish symbol in Anghami's icon sprite
         private const string ThemesIcon = "#all--darkmode";
+
+        // Anghami's report-a-problem symbol, a good fit for opening the diagnostic log
+        private const string LogsIcon = "#all--report-problem";
 
         public string EnsureFunctionName => "mrkEnsureThemesButton";
 
@@ -59,6 +63,33 @@ namespace MRK.UI.Steps
                     if (tLabel) tLabel.textContent = 'Themes';
                     template.insertAdjacentElement('afterend', themes);
 
+                    // logs button: same clone, opens the trace log folder via a 'logs' web message
+                    var logs = template.cloneNode(true);
+                    logs.id = 'mrk-logs-btn';
+                    logs.classList.remove('dark');
+                    var lLink = logs.querySelector('a');
+                    if (lLink) {
+                        lLink.removeAttribute('href');
+                        lLink.removeAttribute('target');
+                        lLink.removeAttribute('rel');
+                        lLink.style.cursor = 'pointer';
+                        lLink.onclick = function (e) {
+                            if (e) e.preventDefault();
+                            window.chrome.webview.postMessage('logs');
+                            return false;
+                        };
+                    }
+                    var lUse = logs.querySelector('use');
+                    if (lUse) {
+                        lUse.setAttribute('xlink:href', '%%LOGS_ICON%%');
+                        lUse.setAttribute('href', '%%LOGS_ICON%%');
+                    }
+                    var lSvg = logs.querySelector('svg');
+                    if (lSvg) lSvg.setAttribute('title', 'logs');
+                    var lLabel = logs.querySelector('span');
+                    if (lLabel) lLabel.textContent = 'Open logs';
+                    themes.insertAdjacentElement('afterend', logs);
+
                     // version footer: same clone, icon stripped, muted label
                     var footer = template.cloneNode(true);
                     footer.classList.remove('dark');
@@ -73,11 +104,13 @@ namespace MRK.UI.Steps
                     if (fIcon) fIcon.remove();
                     var fLabel = footer.querySelector('span');
                     if (fLabel) fLabel.textContent = 'BetterAnghami v%%VERSION%%';
-                    themes.insertAdjacentElement('afterend', footer);
+                    logs.insertAdjacentElement('afterend', footer);
                 }
                 """;
 
-            js = js.Replace("%%ICON%%", ThemesIcon).Replace("%%VERSION%%", AppUtils.AppVersion);
+            js = js.Replace("%%ICON%%", ThemesIcon)
+                .Replace("%%LOGS_ICON%%", LogsIcon)
+                .Replace("%%VERSION%%", AppUtils.AppVersion);
 
             return Task.FromResult(js);
         }

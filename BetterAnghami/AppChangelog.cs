@@ -8,6 +8,14 @@ namespace MRK
         private static readonly VersionChangelog[] _all =
         [
             new(
+                "v0.3.3",
+                [
+                    "Album name shows again in Discord Rich Presence",
+                    "Added a diagnostic log and an Open logs button to make problems easier to report and fix",
+                    "More resilient startup and playback, so one failing feature no longer affects the others",
+                ]
+            ),
+            new(
                 "v0.3.2",
                 [
                     "Player bar now restores on startup instead of only after re-logging in",

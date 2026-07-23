@@ -56,7 +56,7 @@ namespace MRK
             // check if the given metadata is installed
             if (!InstalledThemes.Contains(metadata))
             {
-                // not installed
+                Tracer.Warn(Tracer.Category.Theme, $"Theme '{metadata.Name}' not installed");
                 return null;
             }
 
@@ -70,6 +70,10 @@ namespace MRK
             var backingStoreFileName = GetThemeBackingStoreName(metadata);
             if (!FileManager.Exists(backingStoreFileName))
             {
+                Tracer.Warn(
+                    Tracer.Category.Theme,
+                    $"Backing store missing for theme '{metadata.Name}'"
+                );
                 return null;
             }
 
@@ -81,9 +85,13 @@ namespace MRK
                 // deserialize
                 return await JsonSerializer.DeserializeAsync<List<ThemeProperty>>(stream) ?? [];
             }
-            catch
+            catch (Exception ex)
             {
-                // throw exception, how should we handle it later?
+                Tracer.Error(
+                    Tracer.Category.Theme,
+                    $"Invalid theme file for '{metadata.Name}'",
+                    ex
+                );
                 throw new InvalidDataException("Invalid theme file");
             }
         }
@@ -116,16 +124,26 @@ namespace MRK
                 {
                     InstalledThemes.AddRange(installed);
                 }
+
+                Tracer.Info(
+                    Tracer.Category.Theme,
+                    $"Loaded {InstalledThemes.Count} themes ({installed?.Count ?? 0} user-installed)"
+                );
             }
-            catch
+            catch (Exception ex)
             {
+                Tracer.Error(
+                    Tracer.Category.Theme,
+                    "Invalid installed themes file, backing it up",
+                    ex
+                );
+
                 // back it up incase
                 FileManager.Rename(
                     installedThemesFileName,
                     $"Invalid_{installedThemesFileName}.bak"
                 );
 
-                // throw exception, how should we handle it later?
                 throw new InvalidDataException("Invalid installed themes file");
             }
             finally

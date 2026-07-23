@@ -55,6 +55,16 @@ namespace MRK
             /// Configuration relative file name
             /// </summary>
             public const string ConfigFileName = "Config.json";
+
+            /// <summary>
+            /// Trace log file name
+            /// </summary>
+            public const string LogFileName = "BetterAnghami.log";
+
+            /// <summary>
+            /// Previous session's trace log, rolled aside on startup
+            /// </summary>
+            public const string PreviousLogFileName = "BetterAnghami.prev.log";
         }
 
         public static class Keys
@@ -94,10 +104,10 @@ namespace MRK
                 using var stream = FileManager.Open(Static.ConfigFileName, FileMode.Open);
                 _config = JsonSerializer.Deserialize<Dictionary<string, string>>(stream) ?? [];
             }
-            catch
+            catch (Exception ex)
             {
-                // load failed
-                // do nothing
+                // load failed, keep the empty config
+                Tracer.Warn(Tracer.Category.Config, "Failed to load config", ex);
             }
         }
 
@@ -110,10 +120,10 @@ namespace MRK
                     using var stream = FileManager.Open(Static.ConfigFileName, FileMode.Create);
                     JsonSerializer.Serialize(stream, _config);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // save failed
-                    // do nothing
+                    // save failed, config stays in memory only
+                    Tracer.Warn(Tracer.Category.Config, "Failed to save config", ex);
                 }
             }
         }

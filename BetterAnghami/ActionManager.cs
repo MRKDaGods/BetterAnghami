@@ -120,13 +120,24 @@ namespace MRK
                     await Task.Delay(delay);
                 }
 
-                // execute action
-                await action.Execute();
-
-                // should the action be removed?
-                if (action.ShouldConsume())
+                var actionName = action.GetType().Name;
+                try
                 {
-                    store.RemovalBuffer.Add(action);
+                    Tracer.Debug(Tracer.Category.Action, $"{webViewEvent} -> {actionName}");
+
+                    // execute action
+                    await action.Execute();
+
+                    // should the action be removed?
+                    if (action.ShouldConsume())
+                    {
+                        store.RemovalBuffer.Add(action);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // one bad action shouldn't sink the rest of the batch
+                    Tracer.Error(Tracer.Category.Action, $"{actionName} failed", ex);
                 }
             }
 

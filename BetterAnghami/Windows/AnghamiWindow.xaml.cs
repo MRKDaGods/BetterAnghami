@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using System.Windows.Media;
 using Microsoft.Web.WebView2.Core;
@@ -69,11 +71,28 @@ namespace MRK
 
         private async void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
-            // initialize themes
-            await ThemeManager.Instance.LoadInstalledThemes();
+            Tracer.Info(Tracer.Category.App, "Window loaded");
+
+            // initialize themes. a bad themes file used to throw here and skip the webview entirely,
+            // so a theme failure can't take the whole app down anymore
+            try
+            {
+                await ThemeManager.Instance.LoadInstalledThemes();
+            }
+            catch (Exception ex)
+            {
+                Tracer.Error(Tracer.Category.Theme, "Failed to load installed themes", ex);
+            }
 
             // initialize webview
-            await InitializeWebView();
+            try
+            {
+                await InitializeWebView();
+            }
+            catch (Exception ex)
+            {
+                Tracer.Error(Tracer.Category.WebView, "WebView initialization failed", ex);
+            }
         }
 
         private void OnWindowClosing(object sender, CancelEventArgs e)
@@ -102,7 +121,12 @@ namespace MRK
         private async Task InitializeWebView()
         {
             // initialize webview
+            Tracer.Info(Tracer.Category.WebView, "Ensuring CoreWebView2");
             await webViewControl.EnsureCoreWebView2Async();
+            Tracer.Info(
+                Tracer.Category.WebView,
+                $"CoreWebView2 ready, runtime {WebView.Environment.BrowserVersionString}"
+            );
 
             _resizeFix.Attach();
 
@@ -153,6 +177,7 @@ namespace MRK
             // /home skips that restore, so the player bar never shows until a real re-login.
             // Anghami does NOT bounce signed-out users off /home, so CheckLoginAction detects
             // the signed-out state (login button present) and redirects to /login itself.
+            Tracer.Info(Tracer.Category.WebView, $"Navigating to {Links.Home}");
             WebView.Navigate(Links.Home);
 
             // register initial actions
@@ -165,11 +190,47 @@ namespace MRK
             CoreWebView2WebMessageReceivedEventArgs e
         )
         {
-            // for now we only have themes
-            if (e.WebMessageAsJson == "\"themes\"")
+            switch (e.WebMessageAsJson)
             {
-                // show themes window and wait for it to close
-                new ThemesWindow().Show();
+                case "\"themes\"":
+                    new ThemesWindow().Show();
+                    break;
+
+                case "\"logs\"":
+                    OpenLogs();
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Opens the current trace log in Notepad, falling back to the app data folder if the log
+        /// file isn't there yet.
+        /// </summary>
+        private static void OpenLogs()
+        {
+            try
+            {
+                Tracer.Debug(Tracer.Category.Ui, "Opening logs from menu");
+
+                var logPath = Tracer.LogFilePath;
+                if (logPath != null && File.Exists(logPath))
+                {
+                    Process.Start("notepad.exe", $"\"{Path.GetFullPath(logPath)}\"");
+                }
+                else
+                {
+                    // no log yet, just open the folder
+                    Process.Start(
+                        new ProcessStartInfo(Path.GetFullPath(FileManager.Instance.BaseFolderPath))
+                        {
+                            UseShellExecute = true,
+                        }
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                Tracer.Warn(Tracer.Category.Ui, "Failed to open logs", ex);
             }
         }
 
@@ -195,6 +256,8 @@ namespace MRK
             await _sourceChangedGate.WaitAsync();
             try
             {
+                Tracer.Debug(Tracer.Category.WebView, $"SourceChanged {WebView.Source}");
+
                 // execute all pre-load actions
                 await ActionManager.ExecuteActions(
                     WebViewEvent.SourceChanged,
@@ -301,6 +364,8 @@ namespace MRK
         /// </summary>
         public async Task ApplyThemeImmediate(ThemePropertyList props)
         {
+            Tracer.Info(Tracer.Category.Theme, "Applying theme to document");
+
             var cssVars = props.BuildCssPropertyList();
 
             // Set each variable as an inline style on <html> - inline specificity beats any stylesheet,
@@ -331,7 +396,13 @@ namespace MRK
         {
             var appBg = props.FirstOrDefault(x => x.Name == "--app-background");
             if (appBg == null)
+            {
+                Tracer.Warn(
+                    Tracer.Category.Theme,
+                    "Theme has no --app-background, skipping window sync"
+                );
                 return;
+            }
 
             var color = ColorUtility.MatchColors(appBg.Value).FirstOrDefault()?.Color;
             if (color != null)

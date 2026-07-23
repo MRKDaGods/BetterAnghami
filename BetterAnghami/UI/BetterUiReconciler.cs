@@ -39,9 +39,21 @@ namespace MRK.UI
 
             foreach (var step in _steps)
             {
-                stepJs.AppendLine(await step.BuildJavaScriptAsync());
-                stepJs.AppendLine();
-                stepNames.Add(step.EnsureFunctionName);
+                // one step failing to build shouldn't drop every other step
+                try
+                {
+                    stepJs.AppendLine(await step.BuildJavaScriptAsync());
+                    stepJs.AppendLine();
+                    stepNames.Add(step.EnsureFunctionName);
+                }
+                catch (Exception ex)
+                {
+                    Tracer.Error(
+                        Tracer.Category.Ui,
+                        $"Step {step.GetType().Name} failed to build",
+                        ex
+                    );
+                }
             }
 
             // Names first, so the step JS can't collide with the token
@@ -50,6 +62,11 @@ namespace MRK.UI
                 .Replace("%%STEPS%%", stepJs.ToString());
 
             await _webView.AddScriptToExecuteOnDocumentCreatedAsync(script);
+
+            Tracer.Info(
+                Tracer.Category.Ui,
+                $"Reconciler installed with steps: {string.Join(", ", stepNames)}"
+            );
         }
 
         // Step JS goes in at %%STEPS%%, the ordered ensure-fn list at %%STEP_NAMES%%

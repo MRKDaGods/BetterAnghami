@@ -16,7 +16,20 @@ namespace MRK.UI.Steps
         {
             // one setProperty per var. values can be hex/rgb/hsl/var(), so we leave them as-is and
             // let the JS below resolve them (the browser handles every format).
-            var props = await ThemeManager.Instance.LoadTheme(ThemeManager.Instance.SelectedTheme);
+            var selected = ThemeManager.Instance.SelectedTheme;
+            var props = await ThemeManager.Instance.LoadTheme(selected);
+            if (props == null)
+            {
+                Tracer.Warn(
+                    Tracer.Category.Theme,
+                    $"Selected theme '{selected.Name}' produced no properties, page stays unthemed"
+                );
+            }
+            else
+            {
+                Tracer.Info(Tracer.Category.Theme, $"Baking theme '{selected.Name}' into reconciler");
+            }
+
             var applyVarsBody =
                 props == null
                     ? ""
